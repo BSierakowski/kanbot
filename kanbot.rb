@@ -53,11 +53,13 @@ bot.command(:add) do |event, status, *item|
   event.respond("status: #{status}, item: #{item}")
 
   if command_authorized(event)
-    item = item.join(' ')
-    unless kanban_board.key?(status)
-      event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")
-      next
+    if kanban_board.key?(status) == false
+      item = item.unshift(status).join(' ')
+      status = "todo"
+    else
+      item = item.join(' ')
     end
+
     kanban_board[status] << item
     event.respond "Item '#{item}' added to #{status}."
   end

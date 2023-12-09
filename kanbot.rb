@@ -103,18 +103,26 @@ bot.command(:remove) do |event, status, position|
     event.respond("You are not authorized to use this command.")
   end
 end
-#
+
 # # Change Status Command
-# bot.command(:move) do |event, current_status, new_status, *item|
-#   item = item.join(' ')
-#   unless kanban_board[current_status]&.include?(item) && kanban_board.key?(new_status)
-#     event.respond("Cannot move. Ensure item exists in #{current_status} and #{new_status} is a valid status.")
-#     next
-#   end
-#   kanban_board[current_status].delete(item)
-#   kanban_board[new_status] << item
-#   "Item '#{item}' moved from #{current_status} to #{new_status}."
-# end
+bot.command(:move) do |event, current_status, position, new_status|
+  if command_authorized(event)
+
+    if kanban_board.key?(current_status) == false
+      event.respond("The current status #{current_status} doesn't exist, Available statuses are: #{kanban_board.keys.join(', ')}")
+    elsif kanban_board.key?(new_status) == false
+      event.respond("The new status #{new_status} doesn't exist, Available statuses are: #{kanban_board.keys.join(', ')}")
+    elsif kanban_board[current_status][position].nil?
+      event.respond("No item exists in status #{current_status} at position #{position} to move.")
+    else
+      item = kanban_board[current_status][position - 1]
+      kanban_board[current_status].delete_at(position - 1)
+      kanban_board[new_status] << item
+
+      event.respond("Item '#{item}' moved from #{current_status} to #{new_status}.")
+    end
+  end
+end
 
 bot.message(content: 'Ping!') do |event|
   event.respond 'Pong!'

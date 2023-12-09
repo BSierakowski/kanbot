@@ -26,7 +26,7 @@ bot.command(:add) do |event, status, *item|
     next
   end
   kanban_board[status] << item
-  "Item '#{item}' added to #{status}."
+  event.respond "Item '#{item}' added to #{status}."
 end
 
 # # Remove Item Command

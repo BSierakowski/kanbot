@@ -37,7 +37,7 @@ def output_list(status, array, event)
     list << "#{index + 1}) #{item}"
   end
 
-  event.respond("#{index + 1}. #{item}")
+  event.respond(list.join("\n"))
 end
 
 # Bot Commands

@@ -21,20 +21,31 @@ kanban_board = {
   'done' => []
 }
 
+def command_authorized(event)
+  if event.user.id == "105638140722618368"
+    event.respond("You are not authorized to use this command.")
+    return false
+  end
+  return true
+end
+
 # Bot Commands
+
+# List Items Command
+bot.command(:list) do |event, status|
+  if command_authorized(event)
+    unless kanban_board.key?(status)
+      event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")
+      next
+    end
+    event.respond(kanban_board[status].join("\n"))
+  end
+end
 
 # Add Item Command
 bot.command(:add) do |event, status, *item|
-  puts "event: #{event.inspect}"
-  item = item.join(' ')
-  event.respond("Status: #{status}, Item: #{item}")
-
-
-  if event.user.id == "105638140722618368"
-    event.respond("You are not authorized to use this command.")
-  else
-    puts "calling add command"
-
+  if command_authorized(event)
+    item = item.join(' ')
     unless kanban_board.key?(status)
       event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")
       next

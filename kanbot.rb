@@ -79,9 +79,9 @@ bot.command(:bulkadd) do |event, *items|
     end
 
     if items.count == 1
-      event.respond "Added '#{items.count}' item to Todo."
+      event.respond "Added '#{items.count.to_s}' item to Todo."
     else
-      event.respond "Added '#{items.count}' items to Todo."
+      event.respond "Added '#{items.count.to_s}' items to Todo."
     end
   end
 end

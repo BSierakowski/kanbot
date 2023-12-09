@@ -70,6 +70,24 @@ bot.command(:add) do |event, status, *item|
   end
 end
 
+bot.command(:bulkadd) do |event, *items|
+  if command_authorized(event)
+    status = "todo"
+
+    split_items = items.split(",")
+
+    split_items.each do |item|
+      kanban_board[status] << item.strip
+    end
+
+    if split_items.count == 1
+      event.respond "Added '#{split_items.count}' item to Todo."
+    else
+      event.respond "Added '#{split_items.count}' items to Todo."
+    end
+  end
+end
+
 # # Remove Item Command
 # bot.command(:remove) do |event, status, *item|
 #   item = item.join(' ')

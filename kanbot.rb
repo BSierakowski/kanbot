@@ -12,9 +12,9 @@ puts 'Click on it to invite it to your server.'
 
 # Kanban Board Data Structure
 kanban_board = {
-  'To Do' => [],
-  'In Progress' => [],
-  'Done' => []
+  'todo' => [],
+  'doing' => [],
+  'done' => []
 }
 
 # Bot Commands

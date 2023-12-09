@@ -90,9 +90,9 @@ end
 
 # # Remove Item Command
 bot.command(:remove) do |event, status, position|
-  position = position.to_i
-
   if command_authorized(event)
+    position = position.to_i
+
     if kanban_board.key?(status) == false
       event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")
     elsif kanban_board[status][position - 1].nil?
@@ -107,9 +107,9 @@ end
 
 # # Change Status Command
 bot.command(:move) do |event, current_status, position, new_status|
-  position = position.to_i
-
   if command_authorized(event)
+    position = position.to_i
+
     if kanban_board.key?(current_status) == false
       event.respond("The current status #{current_status} doesn't exist, Available statuses are: #{kanban_board.keys.join(', ')}")
     elsif kanban_board.key?(new_status) == false

@@ -4,7 +4,7 @@ require 'discordrb'
 
 puts "starting Kanbot..."
 # Discord Bot Setup
-bot = Discordrb::Bot.new token: ENV['TOKEN']
+bot = Discordrb::Commands::CommandBot.new token: ENV['TOKEN']
 
 puts "This bot's invite URL is #{bot.invite_url}."
 puts 'Click on it to invite it to your server.'
@@ -29,28 +29,28 @@ bot.command(:add) do |event, status, *item|
   "Item '#{item}' added to #{status}."
 end
 
-# Remove Item Command
-bot.command(:remove) do |event, status, *item|
-  item = item.join(' ')
-  unless kanban_board[status]&.include?(item)
-    event.respond("Item '#{item}' not found in #{status}.")
-    next
-  end
-  kanban_board[status].delete(item)
-  "Item '#{item}' removed from #{status}."
-end
-
-# Change Status Command
-bot.command(:move) do |event, current_status, new_status, *item|
-  item = item.join(' ')
-  unless kanban_board[current_status]&.include?(item) && kanban_board.key?(new_status)
-    event.respond("Cannot move. Ensure item exists in #{current_status} and #{new_status} is a valid status.")
-    next
-  end
-  kanban_board[current_status].delete(item)
-  kanban_board[new_status] << item
-  "Item '#{item}' moved from #{current_status} to #{new_status}."
-end
+# # Remove Item Command
+# bot.command(:remove) do |event, status, *item|
+#   item = item.join(' ')
+#   unless kanban_board[status]&.include?(item)
+#     event.respond("Item '#{item}' not found in #{status}.")
+#     next
+#   end
+#   kanban_board[status].delete(item)
+#   "Item '#{item}' removed from #{status}."
+# end
+#
+# # Change Status Command
+# bot.command(:move) do |event, current_status, new_status, *item|
+#   item = item.join(' ')
+#   unless kanban_board[current_status]&.include?(item) && kanban_board.key?(new_status)
+#     event.respond("Cannot move. Ensure item exists in #{current_status} and #{new_status} is a valid status.")
+#     next
+#   end
+#   kanban_board[current_status].delete(item)
+#   kanban_board[new_status] << item
+#   "Item '#{item}' moved from #{current_status} to #{new_status}."
+# end
 
 bot.message(content: 'Ping!') do |event|
   event.respond 'Pong!'

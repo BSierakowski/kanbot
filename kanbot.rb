@@ -21,12 +21,19 @@ kanban_board = {
   'done' => []
 }
 
+# Helper Methods
 def command_authorized(event)
   if event.user.id == "105638140722618368"
     event.respond("You are not authorized to use this command.")
     return false
   end
   return true
+end
+
+def output_list(array)
+  array.each_with_index do |item, index|
+    event.respond("#{index + 1}. #{item}")
+  end
 end
 
 # Bot Commands
@@ -37,7 +44,7 @@ bot.command(:list) do |event, status|
     if status.nil? || status == "" || status == " " || status == "all"
       event.respond(kanban_board.map { |status, items| "#{status}: #{items.join(', ')}" }.join("\n"))
     elsif status == "todo"
-      event.respond(kanban_board[status].join("\n"))
+      output_list(kanban_board[status])
     elsif status == "doing"
       event.respond(kanban_board[status].join("\n"))
     elsif status == "done"

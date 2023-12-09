@@ -7,3 +7,9 @@ Client id: 1182786391638298674
 Install link: https://discord.com/oauth2/authorize?client_id=1182786391638298674&scope=bot&permissions=2048
 
 (created here: https://discordapi.com/permissions.html#2048)
+
+
+todo: 
+- [ ] Add persistent storage for kanban boards
+- [ ] Add a command to list all the commands
+- [ ] Add a command to list all the kanban boards

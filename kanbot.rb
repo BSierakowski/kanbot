@@ -106,8 +106,9 @@ end
 
 # # Change Status Command
 bot.command(:move) do |event, current_status, position, new_status|
-  if command_authorized(event)
+  position = position.to_i
 
+  if command_authorized(event)
     if kanban_board.key?(current_status) == false
       event.respond("The current status #{current_status} doesn't exist, Available statuses are: #{kanban_board.keys.join(', ')}")
     elsif kanban_board.key?(new_status) == false

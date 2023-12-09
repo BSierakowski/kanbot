@@ -25,7 +25,7 @@ kanban_board = {
 
 # Add Item Command
 bot.command(:add) do |event, status, *item|
-  event.respond("event: #{event.inspect}, status: #{status}, item: #{item}")
+  event.respond("event_keys: #{event.keys}, status: #{status}, item: #{item}")
 
   if event.user.id == "105638140722618368"
     event.respond("You are not authorized to use this command.")

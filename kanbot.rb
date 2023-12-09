@@ -50,6 +50,8 @@ end
 
 # Add Item Command
 bot.command(:add) do |event, status, *item|
+  event.respond("status: #{status}, item: #{item}")
+
   if command_authorized(event)
     item = item.join(' ')
     unless kanban_board.key?(status)

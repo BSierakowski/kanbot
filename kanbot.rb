@@ -91,12 +91,14 @@ bot.command(:remove) do |event, status, position|
   if command_authorized(event)
     if kanban_board.key?(status) == false
       event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")
+    elsif kanban_board[status][position.to_i].nil?
+      event.respond("No item exists in status #{status} at position ${position}")
     else
       item = kanban_board[status][position.to_i - 1]
       kanban_board[status].delete_at(position.to_i - 1)
+      event.respond("Item '#{item}' removed from #{status}.")
     end
-
-    "Item '#{item}' removed from #{status}."
+    
   else
     event.respond("You are not authorized to use this command.")
   end

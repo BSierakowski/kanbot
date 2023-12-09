@@ -1,10 +1,11 @@
 require 'dotenv/load'
 require 'discordrb'
 
-
 puts "starting Kanbot..."
-# Discord Bot Setup
-bot = Discordrb::Commands::CommandBot.new token: ENV['TOKEN']
+
+# Here we instantiate a `CommandBot` instead of a regular `Bot`, which has the functionality to add commands using the
+# `command` method. We have to set a `prefix` here, which will be the character that triggers command execution.
+bot = Discordrb::Commands::CommandBot.new token: ENV['TOKEN'], prefix: '!'
 
 puts "This bot's invite URL is #{bot.invite_url}."
 puts 'Click on it to invite it to your server.'
@@ -20,6 +21,7 @@ kanban_board = {
 
 # Add Item Command
 bot.command(:add) do |event, status, *item|
+  puts "calling add command"
   item = item.join(' ')
   unless kanban_board.key?(status)
     event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")

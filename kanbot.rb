@@ -65,6 +65,7 @@ require 'discordrb'
 # you, look here: https://github.com/discordrb/discordrb/wiki/Redirect-URIs-and-RPC-origins
 # After creating the bot, simply copy the token (*not* the OAuth2 secret) and put it into the
 # respective place.
+puts "starting Kanbot..."
 bot = Discordrb::Bot.new token: ENV['TOKEN']
 
 # Here we output the invite URL to the console so the bot account can be invited to the channel. This only has to be

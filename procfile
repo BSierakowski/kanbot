@@ -1,1 +1,1 @@
-web: ruby kanbot.rb
+web: bundle exec ruby kanbot.rb

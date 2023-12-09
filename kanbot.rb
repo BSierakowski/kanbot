@@ -113,7 +113,7 @@ bot.command(:move) do |event, current_status, position, new_status|
       event.respond("The current status #{current_status} doesn't exist, Available statuses are: #{kanban_board.keys.join(', ')}")
     elsif kanban_board.key?(new_status) == false
       event.respond("The new status #{new_status} doesn't exist, Available statuses are: #{kanban_board.keys.join(', ')}")
-    elsif kanban_board[current_status][position].nil?
+    elsif kanban_board[current_status][position - 1].nil?
       event.respond("No item exists in status #{current_status} at position #{position} to move.")
     else
       item = kanban_board[current_status][position - 1]

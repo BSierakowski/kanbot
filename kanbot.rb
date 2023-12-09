@@ -74,14 +74,16 @@ bot.command(:bulkadd) do |event, *items|
   if command_authorized(event)
     status = "todo"
 
-    items.each do |item|
+    split_items = items.join(' ').split(",")
+
+    split_items.each do |item|
       kanban_board[status] << item.chomp(",").strip
     end
 
-    if items.count == 1
-      event.respond "Added #{items.count} item to Todo."
+    if split_items.count == 1
+      event.respond "Added #{split_items.count} item to Todo."
     else
-      event.respond "Added #{items.count} items to Todo."
+      event.respond "Added #{split_items.count} items to Todo."
     end
   end
 end

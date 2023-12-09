@@ -12,7 +12,7 @@ puts 'Click on it to invite it to your server.'
 
 games_and_bots_id = "1006282141828644944"
 
-bot.send_message(games_and_bots_id, "Kanbot Kan! Booted at #{Time.now}. \n \n Available commands: \n !list [status] \n !add [status] [item] \n !remove [status] [position] \n !move [current_status] [position] [new_status] \n \n Example: \n !list \n !list todo \n !add doing 'Build a Kanban Board' \n !remove doing 1 \n !move doing 1 done")
+bot.send_message(games_and_bots_id, "Kanbot Kan! Booted at #{Time.now}. \n \n Available commands: \n !list [status] \n !add [status] [item] \n !remove [status] [position] \n !move [current_status] [position] [new_status] \n \n Example: \n !list \n !list todo \n !add doing Build a Kanban Board \n !remove doing 1 \n !move doing 1 done")
 
 # Kanban Board Data Structure
 kanban_board = {

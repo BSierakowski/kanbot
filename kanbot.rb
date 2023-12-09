@@ -10,6 +10,10 @@ bot = Discordrb::Commands::CommandBot.new token: ENV['TOKEN'], prefix: '!'
 puts "This bot's invite URL is #{bot.invite_url}."
 puts 'Click on it to invite it to your server.'
 
+games_and_bots_id = "1006282141828644944"
+
+bot.send_message(games_and_bots_id, "Booted at #{Time.now}")
+
 # Kanban Board Data Structure
 kanban_board = {
   'todo' => [],
@@ -21,16 +25,20 @@ kanban_board = {
 
 # Add Item Command
 bot.command(:add) do |event, status, *item|
-  puts "calling add command"
-  item = item.join(' ')
+  if event.user.id == "105638140722618368"
+    event.respond("You are not authorized to use this command.")
+  else
+    puts "calling add command"
+    item = item.join(' ')
 
-  event.respond("event: #{event}, status: #{status}, item: #{item}")
-  unless kanban_board.key?(status)
-    event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")
-    next
+    event.respond("event: #{event.inspect}, status: #{status}, item: #{item}")
+    unless kanban_board.key?(status)
+      event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")
+      next
+    end
+    kanban_board[status] << item
+    event.respond "Item '#{item}' added to #{status}."
   end
-  kanban_board[status] << item
-  event.respond "Item '#{item}' added to #{status}."
 end
 
 # # Remove Item Command

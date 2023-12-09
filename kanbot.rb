@@ -47,12 +47,8 @@ bot.command(:list) do |event, status|
   if command_authorized(event)
     if status.nil? || status == "" || status == " " || status == "all"
       event.respond(kanban_board.map { |status, items| "#{status}: #{items.join(', ')}" }.join("\n"))
-    elsif status == "todo"
+    elsif status == "todo" || status == "doing" || status == "done"
       output_list(status, kanban_board[status], event)
-    elsif status == "doing"
-      event.respond(kanban_board[status].join("\n"))
-    elsif status == "done"
-      event.respond(kanban_board[status].join("\n"))
     else
       event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")
     end

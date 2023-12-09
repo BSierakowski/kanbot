@@ -23,6 +23,8 @@ kanban_board = {
 bot.command(:add) do |event, status, *item|
   puts "calling add command"
   item = item.join(' ')
+
+  event.respond("event: #{event}, status: #{status}, item: #{item}")
   unless kanban_board.key?(status)
     event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")
     next

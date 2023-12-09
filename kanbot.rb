@@ -87,15 +87,20 @@ bot.command(:bulkadd) do |event, *items|
 end
 
 # # Remove Item Command
-# bot.command(:remove) do |event, status, *item|
-#   item = item.join(' ')
-#   unless kanban_board[status]&.include?(item)
-#     event.respond("Item '#{item}' not found in #{status}.")
-#     next
-#   end
-#   kanban_board[status].delete(item)
-#   "Item '#{item}' removed from #{status}."
-# end
+bot.command(:remove) do |event, status, position|
+  if command_authorized(event)
+    if kanban_board.key?(status) == false
+      event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")
+    else
+      item = kanban_board[status][position.to_i - 1]
+      kanban_board[status].delete_at(position.to_i - 1)
+    end
+
+    "Item '#{item}' removed from #{status}."
+  else
+    event.respond("You are not authorized to use this command.")
+  end
+end
 #
 # # Change Status Command
 # bot.command(:move) do |event, current_status, new_status, *item|

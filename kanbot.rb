@@ -47,10 +47,25 @@ end
 
 def output_list(status, items, event)
   if status == "all"
-    list = ["All Items:"]
+    list = ["All Items!"]
+    list << ["Todo Items:"]
 
-    items.each_with_index do |item, index|
-      list << "#{index + 1}) #{item.status} - #{item.item_description}"
+    todo_items = items.where(status: "todo")
+    todo_items.each do |item|
+      list << " - #{item.item_description}"
+    end
+
+    list << ["Doing Items:"]
+
+    doing_items = items.where(status: "doing")
+    doing_items.each do |item|
+      list << " - #{item.item_description}"
+    end
+
+    list << ["Done Items:"]
+    done_items = items.where(status: "done")
+    done_items.each do |item|
+      list << " - #{item.item_description}"
     end
   else
     list = ["#{status.capitalize} Items:"]

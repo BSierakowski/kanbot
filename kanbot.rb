@@ -34,17 +34,8 @@ PUBLIC_KEY = "b6e34d2b3355a0f0c0bbc015c2fa8e2419e809fbca99ffd4219e49d5322a2f67"
 
 bot.send_message(games_and_bots_id, "Kanbot Kan! Booted at #{Time.now}. \n \n Available commands: \n !list [status] \n !add [status] [item] \n !remove [status] [position] \n !move [current_status] [position] [new_status] \n \n Example: \n !list \n !list todo \n !add doing Build a Kanban Board \n !remove doing 1 \n !move doing 1 done")
 
-# Kanban Board Data Structure
-kanban_board = {
-  'todo' => [],
-  'doing' => [],
-  'done' => []
-}
-
 # Helper Methods
 def command_authorized(event)
-
-
   if event.user.id == "105638140722618368"
     event.respond("You are not authorized to use this command.")
     return false
@@ -68,9 +59,13 @@ end
 bot.command(:list) do |event, status|
   if command_authorized(event)
     if status.nil? || status == "" || status == " " || status == "all"
-      event.respond(kanban_board.map { |status, items| "#{status}: #{items.join(', ')}" }.join("\n"))
+      items = Item.where(server_id: event.server.id).order(:status, :id)
+
+      event.respond("Items: \n #{items.map { |item| "#{item.status.capitalize}: #{item.item_description}" }.join("\n") }")
     elsif status == "todo" || status == "doing" || status == "done"
-      output_list(status, kanban_board[status], event)
+      items = Item.where(server_id: event.server.id, status: status).order(:id)
+
+      output_list(status, items, event)
     else
       event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")
     end
@@ -79,8 +74,6 @@ end
 
 # Add Item Command
 bot.command(:add) do |event, status, *item|
-  event.respond("event methods: #{event.methods}, event headers?: #{event.key?('headers')}")
-
   if command_authorized(event)
     if kanban_board.key?(status) == false
       item = item.unshift(status).join(' ')
@@ -89,7 +82,6 @@ bot.command(:add) do |event, status, *item|
       item = item.join(' ')
     end
 
-    kanban_board[status] << item
     Item.create(user_id: event.user.id, server_id: event.server.id, item_description: item, status: status)
     event.respond "Item '#{item}' added to #{status}."
   end
@@ -102,7 +94,9 @@ bot.command(:bulkadd) do |event, *items|
     split_items = items.join(' ').split(",")
 
     split_items.each do |item|
-      kanban_board[status] << item.chomp(",").strip
+      item_description = item.chomp(",").strip
+
+      Item.create(user_id: event.user.id, server_id: event.server.id, item_description: item_description, status: status)
     end
 
     if split_items.count == 1
@@ -114,45 +108,45 @@ bot.command(:bulkadd) do |event, *items|
 end
 
 # # Remove Item Command
-bot.command(:remove) do |event, status, position|
-  if command_authorized(event)
-    position = position.to_i
-
-    if kanban_board.key?(status) == false
-      event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")
-    elsif kanban_board[status][position - 1].nil?
-      event.respond("No item exists in status #{status} at position #{position}")
-    else
-      item = kanban_board[status][position - 1]
-      kanban_board[status].delete_at(position - 1)
-      event.respond("Item '#{item}' removed from #{status}.")
-    end
-  end
-end
+# bot.command(:remove) do |event, status, position|
+#   if command_authorized(event)
+#     position = position.to_i
+#
+#     if kanban_board.key?(status) == false
+#       event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")
+#     elsif kanban_board[status][position - 1].nil?
+#       event.respond("No item exists in status #{status} at position #{position}")
+#     else
+#       item = kanban_board[status][position - 1]
+#       kanban_board[status].delete_at(position - 1)
+#       event.respond("Item '#{item}' removed from #{status}.")
+#     end
+#   end
+# end
 
 # # Change Status Command
-bot.command(:move) do |event, current_status, position, new_status|
-  if command_authorized(event)
-    position = position.to_i
-
-    if kanban_board.key?(current_status) == false
-      event.respond("The current status #{current_status} doesn't exist, Available statuses are: #{kanban_board.keys.join(', ')}")
-    elsif kanban_board.key?(new_status) == false
-      event.respond("The new status #{new_status} doesn't exist, Available statuses are: #{kanban_board.keys.join(', ')}")
-    elsif kanban_board[current_status][position - 1].nil?
-      event.respond("No item exists in status #{current_status} at position #{position} to move.")
-    else
-      item = kanban_board[current_status][position - 1]
-      kanban_board[current_status].delete_at(position - 1)
-      kanban_board[new_status] << item
-
-      event.respond("Item '#{item}' moved from #{current_status} to #{new_status}.")
-    end
-  end
-end
+# bot.command(:move) do |event, current_status, position, new_status|
+#   if command_authorized(event)
+#     position = position.to_i
+#
+#     if kanban_board.key?(current_status) == false
+#       event.respond("The current status #{current_status} doesn't exist, Available statuses are: #{kanban_board.keys.join(', ')}")
+#     elsif kanban_board.key?(new_status) == false
+#       event.respond("The new status #{new_status} doesn't exist, Available statuses are: #{kanban_board.keys.join(', ')}")
+#     elsif kanban_board[current_status][position - 1].nil?
+#       event.respond("No item exists in status #{current_status} at position #{position} to move.")
+#     else
+#       item = kanban_board[current_status][position - 1]
+#       kanban_board[current_status].delete_at(position - 1)
+#       kanban_board[new_status] << item
+#
+#       event.respond("Item '#{item}' moved from #{current_status} to #{new_status}.")
+#     end
+#   end
+# end
 
 bot.message(content: 'Ping!') do |event|
-  event.respond 'Pong!'
+  event.respond 'Hi friend :).'
 end
 
 # Run the Bot

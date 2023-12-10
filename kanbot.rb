@@ -79,7 +79,7 @@ end
 
 # Add Item Command
 bot.command(:add) do |event, status, *item|
-  event.respond("event methods: #{event.methods}, event headers?: #{event.key?(headers)}")
+  event.respond("event methods: #{event.methods}, event headers?: #{event.key?('headers')}")
 
   if command_authorized(event)
     if kanban_board.key?(status) == false

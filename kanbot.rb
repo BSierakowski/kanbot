@@ -54,7 +54,7 @@ def output_list(status, items, event)
       list << "- #{item.item_description}"
     end
 
-    list << " "
+    list << "------------"
     list << "Doing Items:"
 
     doing_items = items.where(status: "doing")
@@ -62,7 +62,7 @@ def output_list(status, items, event)
       list << "- #{item.item_description}"
     end
 
-    list << " "
+    list << "-----------"
     list << "Done Items:"
     done_items = items.where(status: "done")
     done_items.each do |item|

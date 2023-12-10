@@ -153,25 +153,31 @@ bot.command(:remove) do |event, status, position|
 end
 
 # # Change Status Command
-# bot.command(:move) do |event, current_status, position, new_status|
-#   if command_authorized(event)
-#     position = position.to_i
-#
-#     if kanban_board.key?(current_status) == false
-#       event.respond("The current status #{current_status} doesn't exist, Available statuses are: #{kanban_board.keys.join(', ')}")
-#     elsif kanban_board.key?(new_status) == false
-#       event.respond("The new status #{new_status} doesn't exist, Available statuses are: #{kanban_board.keys.join(', ')}")
-#     elsif kanban_board[current_status][position - 1].nil?
-#       event.respond("No item exists in status #{current_status} at position #{position} to move.")
-#     else
-#       item = kanban_board[current_status][position - 1]
-#       kanban_board[current_status].delete_at(position - 1)
-#       kanban_board[new_status] << item
-#
-#       event.respond("Item '#{item}' moved from #{current_status} to #{new_status}.")
-#     end
-#   end
-# end
+bot.command(:move) do |event, current_status, position, new_status|
+  if command_authorized(event)
+    position = position.to_i
+
+    if current_status != "todo" && current_status != "doing" && current_status != "done"
+      event.respond("The current status #{current_status} doesn't exist, Available statuses are: todo, doing, done.")
+      return
+    end
+
+    if new_status != "todo" && new_status != "doing" && new_status != "done"
+      event.respond("The new status #{new_status} doesn't exist, Available statuses are: todo, doing, done.")
+      return
+    end
+
+    item = Item.where(server_id: event.server.id, status: current_status).order(:id)[position - 1]
+
+    if item.nil?
+      event.respond("No item exists in status #{current_status} at position #{position} to move.")
+      return
+    end
+
+    item.update(status: new_status)
+    event.respond("Item '#{item.item_description}' moved from #{current_status} to #{new_status}.")
+  end
+end
 
 bot.message(content: 'Ping!') do |event|
   event.respond 'Hi friend :).'

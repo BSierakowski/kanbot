@@ -146,7 +146,7 @@ bot.command(:remove) do |event, status, position|
       else
         item = items[position - 1]
         items[position - 1].delete
-        event.respond("Item '#{item}' removed from #{status}.")
+        event.respond("Item '#{item.item_description}' removed from #{status}.")
       end
     end
   end

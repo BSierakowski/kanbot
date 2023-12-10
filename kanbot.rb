@@ -3,15 +3,20 @@ require 'discordrb'
 require 'pg'
 require 'active_record'
 
-# CREATE TABLE [IF NOT EXISTS] table_name (
-#                                           column1 datatype(length) column_contraint,
-#   column2 datatype(length) column_contraint,
-#   column3 datatype(length) column_contraint,
-#   table_constraints
-# );
-
 class Item < ActiveRecord::Base
 end
+
+CREATE_ITEMS_TABLE_SQL = <<~SQL
+  CREATE TABLE [IF NOT EXISTS] items (
+    user_id INT NOT NULL,
+    server_id INT NOT NULL,
+    item_description VARCHAR ( 255 ) NOT NULL,
+    status VARCHAR ( 255 ) NOT NULL
+  );
+SQL
+
+create_items_table = ActiveRecord::Base.sanitize_sql_array([CREATE_ITEMS_TABLE_SQL])
+ActiveRecord::Base.connection.exec_query(create_items_table)
 
 puts "starting Kanbot..."
 
@@ -71,7 +76,7 @@ end
 
 # Add Item Command
 bot.command(:add) do |event, status, *item|
-  event.respond("server_id: #{event.server.id}")
+  event.respond("items count: #{Items.all.count}")
 
   if command_authorized(event)
     if kanban_board.key?(status) == false

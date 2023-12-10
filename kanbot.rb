@@ -75,7 +75,8 @@ def output_list(status, items, event)
     end
   end
 
-  event.respond(list.join("\n"))
+  event.respond(list)
+  # event.respond(list.join("\n"))
 end
 
 # Bot Commands

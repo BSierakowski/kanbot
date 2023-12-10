@@ -87,6 +87,7 @@ bot.command(:add) do |event, status, *item|
     end
 
     kanban_board[status] << item
+    Item.create(user_id: event.user.id, server_id: event.server.id, item_description: item, status: status)
     event.respond "Item '#{item}' added to #{status}."
   end
 end

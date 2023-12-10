@@ -61,7 +61,7 @@ bot.command(:list) do |event, status|
     if status.nil? || status == "" || status == " " || status == "all"
       items = Item.where(server_id: event.server.id).order(:status, :id)
 
-      event.respond("Items: \n #{items.map { |item| "#{item.status.capitalize}: #{item.item_description}" }.join("\n") }")
+      event.respond("Items: #{items.inspect}")
     elsif status == "todo" || status == "doing" || status == "done"
       items = Item.where(server_id: event.server.id, status: status).order(:id)
 

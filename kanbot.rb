@@ -71,7 +71,7 @@ def output_list(status, items, event)
     list = ["#{status.capitalize} Items:"]
 
     items.each_with_index do |item, index|
-      list << "#{index + 1}) #{item.item_description}"
+      list << "#{index + 1}. #{item.item_description}"
     end
   end
 

@@ -67,7 +67,7 @@ bot.command(:list) do |event, status|
 
       output_list(status, items, event)
     else
-      event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")
+      event.respond("Invalid status. Available statuses are: todo, doing, done.")
     end
   end
 end
@@ -75,7 +75,7 @@ end
 # Add Item Command
 bot.command(:add) do |event, status, *item|
   if command_authorized(event)
-    if kanban_board.key?(status) == false
+    if status != "todo" && status != "doing" && status != "done"
       item = item.unshift(status).join(' ')
       status = "todo"
     else

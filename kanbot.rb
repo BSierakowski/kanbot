@@ -7,7 +7,7 @@ class Item < ActiveRecord::Base
 end
 
 CREATE_ITEMS_TABLE_SQL = <<~SQL
-  CREATE TABLE [IF NOT EXISTS] items (
+  CREATE TABLE IF NOT EXISTS items (
     user_id INT NOT NULL,
     server_id INT NOT NULL,
     item_description VARCHAR ( 255 ) NOT NULL,

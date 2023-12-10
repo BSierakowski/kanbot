@@ -1,5 +1,17 @@
 require 'dotenv/load'
 require 'discordrb'
+require 'pg'
+require 'active_record'
+
+# CREATE TABLE [IF NOT EXISTS] table_name (
+#                                           column1 datatype(length) column_contraint,
+#   column2 datatype(length) column_contraint,
+#   column3 datatype(length) column_contraint,
+#   table_constraints
+# );
+
+class Item < ActiveRecord::Base
+end
 
 puts "starting Kanbot..."
 
@@ -9,6 +21,8 @@ bot = Discordrb::Commands::CommandBot.new token: ENV['TOKEN'], prefix: '!'
 
 puts "This bot's invite URL is #{bot.invite_url}."
 puts 'Click on it to invite it to your server.'
+
+ActiveRecord::Base.establish_connection(ENV['DATABASE_URL'] || 'postgres://localhost/mydb')
 
 games_and_bots_id = "1006282141828644944"
 
@@ -23,6 +37,7 @@ kanban_board = {
 
 # Helper Methods
 def command_authorized(event)
+  event.respond("guild_id: #{event.guild_id}, user_id: #{event.user.id}")
   if event.user.id == "105638140722618368"
     event.respond("You are not authorized to use this command.")
     return false

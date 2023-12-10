@@ -37,7 +37,6 @@ kanban_board = {
 
 # Helper Methods
 def command_authorized(event)
-  event.respond("guild_id: #{event.guild_id}, user_id: #{event.user.id}")
   if event.user.id == "105638140722618368"
     event.respond("You are not authorized to use this command.")
     return false
@@ -72,6 +71,8 @@ end
 
 # Add Item Command
 bot.command(:add) do |event, status, *item|
+  event.respond("guild_id: #{event.guild_id}, user_id: #{event.user.id}")
+
   if command_authorized(event)
     if kanban_board.key?(status) == false
       item = item.unshift(status).join(' ')

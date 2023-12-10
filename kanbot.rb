@@ -47,14 +47,17 @@ end
 def output_list(status, items, event)
 
   if status == "all"
-    list = "All Items:"
-    array = items.map { |item| item.status, item.item_description }
-  # else
-  #   array = items.map { |item| item.item_description }
-  end
+    list = ["All Items:"]
 
-  array.each_with_index do |item, index|
-    list << "#{index + 1}) #{item}"
+    items.each_with_index do |item, index|
+      list << "#{index + 1}) #{item.status} - #{item.item_description}"
+    end
+  else
+    list = ["#{status.capitalize} Items:"]
+
+    items.each_with_index do |item, index|
+      list << "#{index + 1}) #{item.item_description}"
+    end
   end
 
   event.respond(list.join("\n"))

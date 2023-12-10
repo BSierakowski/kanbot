@@ -76,7 +76,7 @@ end
 
 # Add Item Command
 bot.command(:add) do |event, status, *item|
-  event.respond("items count: #{Items.all.count}")
+  event.respond("items count: #{Item.all.count}")
 
   if command_authorized(event)
     if kanban_board.key?(status) == false

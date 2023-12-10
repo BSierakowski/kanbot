@@ -71,7 +71,7 @@ end
 
 # Add Item Command
 bot.command(:add) do |event, status, *item|
-  event.respond("server: #{event.server.inspect}")
+  event.respond("server_id: #{event.server.id}")
 
   if command_authorized(event)
     if kanban_board.key?(status) == false

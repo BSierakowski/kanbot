@@ -71,7 +71,7 @@ end
 
 # Add Item Command
 bot.command(:add) do |event, status, *item|
-  event.respond("methods: #{event.methods}")
+  event.respond("methods: #{event.methods}, server: #{event.server}, channel: #{event.channel}, user: #{event.user}, message: #{event.message}"})
 
   if command_authorized(event)
     if kanban_board.key?(status) == false

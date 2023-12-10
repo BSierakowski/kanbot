@@ -8,6 +8,7 @@ end
 
 CREATE_ITEMS_TABLE_SQL = <<~SQL
   CREATE TABLE IF NOT EXISTS items (
+    id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id bigint NOT NULL,
     server_id bigint NOT NULL,
     item_description VARCHAR ( 2048 ) NOT NULL,

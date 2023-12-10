@@ -47,8 +47,7 @@ end
 
 def output_list(status, items, event)
   if status == "all"
-    list = ["All Items!"]
-    list << "Todo Items:"
+    list = ["Todo Items:"]
 
     todo_items = items.where(status: "todo")
     todo_items.each do |item|

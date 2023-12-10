@@ -44,8 +44,14 @@ def command_authorized(event)
   return true
 end
 
-def output_list(status, array, event)
-  list = ["#{status.capitalize}:"]
+def output_list(status, items, event)
+
+  if status == "all"
+    list = "All Items:"
+    array = items.map { |item| item.status, item.item_description }
+  # else
+  #   array = items.map { |item| item.item_description }
+  end
 
   array.each_with_index do |item, index|
     list << "#{index + 1}) #{item}"
@@ -62,7 +68,7 @@ bot.command(:list) do |event, status|
     if status.nil? || status == "" || status == " " || status == "all"
       items = Item.where(server_id: event.server.id).order(:status, :id)
 
-      event.respond("Items: #{items.inspect}")
+      output_list("all", items, event)
     elsif status == "todo" || status == "doing" || status == "done"
       items = Item.where(server_id: event.server.id, status: status).order(:id)
 

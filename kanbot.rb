@@ -15,6 +15,8 @@ CREATE_ITEMS_TABLE_SQL = <<~SQL
   );
 SQL
 
+ActiveRecord::Base.establish_connection(ENV['DATABASE_URL'] || 'postgres://localhost/mydb')
+
 create_items_table = ActiveRecord::Base.sanitize_sql_array([CREATE_ITEMS_TABLE_SQL])
 ActiveRecord::Base.connection.exec_query(create_items_table)
 
@@ -26,8 +28,6 @@ bot = Discordrb::Commands::CommandBot.new token: ENV['TOKEN'], prefix: '!'
 
 puts "This bot's invite URL is #{bot.invite_url}."
 puts 'Click on it to invite it to your server.'
-
-ActiveRecord::Base.establish_connection(ENV['DATABASE_URL'] || 'postgres://localhost/mydb')
 
 games_and_bots_id = "1006282141828644944"
 

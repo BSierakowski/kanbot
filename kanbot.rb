@@ -132,21 +132,25 @@ bot.command(:bulkadd) do |event, *items|
 end
 
 # # Remove Item Command
-# bot.command(:remove) do |event, status, position|
-#   if command_authorized(event)
-#     position = position.to_i
-#
-#     if kanban_board.key?(status) == false
-#       event.respond("Invalid status. Available statuses are: #{kanban_board.keys.join(', ')}")
-#     elsif kanban_board[status][position - 1].nil?
-#       event.respond("No item exists in status #{status} at position #{position}")
-#     else
-#       item = kanban_board[status][position - 1]
-#       kanban_board[status].delete_at(position - 1)
-#       event.respond("Item '#{item}' removed from #{status}.")
-#     end
-#   end
-# end
+bot.command(:remove) do |event, status, position|
+  if command_authorized(event)
+    position = position.to_i
+
+    if status != "todo" && status != "doing" && status != "done"
+      event.respond("Invalid status. Available statuses are: todo, doing, done.")
+    else
+      items = Item.where(server_id: event.server.id, status: status).order(:id)
+
+      if items[position - 1].nil?
+        event.respond("No item exists in status #{status} at position #{position}")
+      else
+        item = items[position - 1]
+        items[position - 1].delete
+        event.respond("Item '#{item}' removed from #{status}.")
+      end
+    end
+  end
+end
 
 # # Change Status Command
 # bot.command(:move) do |event, current_status, position, new_status|

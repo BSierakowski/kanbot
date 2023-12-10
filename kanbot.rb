@@ -4,6 +4,7 @@ require 'pg'
 require 'active_record'
 
 class Item < ActiveRecord::Base
+  enum status: [:todo, :doing, :done]
 end
 
 CREATE_ITEMS_TABLE_SQL = <<~SQL
@@ -12,7 +13,7 @@ CREATE_ITEMS_TABLE_SQL = <<~SQL
     user_id bigint NOT NULL,
     server_id bigint NOT NULL,
     item_description VARCHAR ( 2048 ) NOT NULL,
-    status VARCHAR ( 255 ) NOT NULL
+    status int NOT NULL
   );
 SQL
 
@@ -45,7 +46,6 @@ def command_authorized(event)
 end
 
 def output_list(status, items, event)
-
   if status == "all"
     list = ["All Items:"]
 

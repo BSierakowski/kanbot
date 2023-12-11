@@ -31,11 +31,6 @@ bot = Discordrb::Commands::CommandBot.new token: ENV['TOKEN'], prefix: '!'
 puts "This bot's invite URL is #{bot.invite_url}."
 puts 'Click on it to invite it to your server.'
 
-games_and_bots_id = "1006282141828644944"
-PUBLIC_KEY = "b6e34d2b3355a0f0c0bbc015c2fa8e2419e809fbca99ffd4219e49d5322a2f67"
-
-bot.send_message(games_and_bots_id, "Kanbot Kan! Booted at #{Time.now}. \n \n Available commands: \n !list [status] \n !add [status] [item] \n !remove [status] [position] \n !move [current_status] [position] [new_status] \n \n Example: \n !list \n !list todo \n !add doing Build a Kanban Board \n !remove doing 1 \n !move doing 1 done")
-
 # Helper Methods
 def command_authorized(event)
   if event.user.id == "105638140722618368"
@@ -183,6 +178,10 @@ end
 
 bot.message(content: 'Ping!') do |event|
   event.respond 'Hi friend :).'
+end
+
+bot.command(:help) do |event|
+  event.respond("Kanbot Kan! \n \n Available commands: \n !list [status] \n !add [status] [item] \n !remove [status] [position] \n !move [current_status] [position] [new_status] \n \n Example: \n !list \n !list todo \n !add doing Build a Kanban Board \n !remove doing 1 \n !move doing 1 done")
 end
 
 # Run the Bot

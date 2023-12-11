@@ -5,17 +5,17 @@ Kanbot can :).
 ## Commands
 
 Available commands:
-!list [status]
-!add [status] [item]
-!remove [status] [position]
-!move [current_status] [position] [new_status]
+- !list [status]
+- !add [status] [item]
+- !remove [status] [position]
+- !move [current_status] [position] [new_status]
 
 Example:
-!list
-!list todo
-!add doing Build a Kanban Board
-!remove doing 1
-!move doing 1 done
+- !list
+- !list todo
+- !add doing Build a Kanban Board
+- !remove doing 1
+- !move doing 1 done
 
 ## Development
 

@@ -106,6 +106,8 @@ bot.command(:add) do |event, status, *item|
       item = item.join(' ')
     end
 
+    item = item + " - #{event.user.name}"
+
     Item.create(user_id: event.user.id, server_id: event.server.id, channel_id: event.channel.id, item_description: item, status: status)
     event.respond "Item '#{item}' added to #{status}."
   end
@@ -119,6 +121,7 @@ bot.command(:bulkadd) do |event, *items|
 
     split_items.each do |item|
       item_description = item.chomp(",").strip
+      item_description = item_description + " - #{event.user.name}"
 
       Item.create(user_id: event.user.id, server_id: event.server.id, channel_id: event.channel.id, item_description: item_description, status: status)
     end

@@ -79,10 +79,7 @@ end
 
 # List Items Command
 bot.command(:list) do |event, status|
-  puts "event: #{event.inspect}"
-  puts "channel: #{event.channel}"
-  puts "channel inspect: #{event.channel.inspect}"
-  event.respond("#{event.attribute_names}")
+  event.respond("Channel ID: #{event.channel.id}, Channel Name: #{event.channel.name} ")
   if command_authorized(event)
     if status.nil? || status == "" || status == " " || status == "all"
       items = Item.where(server_id: event.server.id).order(:status, :id)

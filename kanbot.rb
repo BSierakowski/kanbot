@@ -12,6 +12,7 @@ CREATE_ITEMS_TABLE_SQL = <<~SQL
     id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id bigint NOT NULL,
     server_id bigint NOT NULL,
+    channel_id bigint NOT NULL,
     item_description VARCHAR ( 2048 ) NOT NULL,
     status int NOT NULL
   );
@@ -41,9 +42,10 @@ def command_authorized(event)
 end
 
 def output_list(status, items, event)
+  channel_name = event.channel.name
 
   if status == "all"
-    list = ["Todo Items:"]
+    list = ["Todo Items for #{channel_name}:"]
 
     todo_items = items.where(status: "todo")
     todo_items.each do |item|
@@ -65,7 +67,7 @@ def output_list(status, items, event)
       list << "- #{item.item_description}"
     end
   else
-    list = ["#{status.capitalize} Items:"]
+    list = ["#{status.capitalize} Items for #{channel_name}:"]
 
     items.each_with_index do |item, index|
       list << "#{index + 1}. #{item.item_description}"
@@ -79,14 +81,13 @@ end
 
 # List Items Command
 bot.command(:list) do |event, status|
-  event.respond("Channel ID: #{event.channel.id}, Channel Name: #{event.channel.name} ")
   if command_authorized(event)
     if status.nil? || status == "" || status == " " || status == "all"
-      items = Item.where(server_id: event.server.id).order(:status, :id)
+      items = Item.where(server_id: event.server.id, channel_id: event.channel.id).order(:status, :id)
 
       output_list("all", items, event)
     elsif status == "todo" || status == "doing" || status == "done"
-      items = Item.where(server_id: event.server.id, status: status).order(:id)
+      items = Item.where(server_id: event.server.id, channel_id: event.channel.id, status: status).order(:id)
 
       output_list(status, items, event)
     else
@@ -105,7 +106,7 @@ bot.command(:add) do |event, status, *item|
       item = item.join(' ')
     end
 
-    Item.create(user_id: event.user.id, server_id: event.server.id, item_description: item, status: status)
+    Item.create(user_id: event.user.id, server_id: event.server.id, channel_id: event.channel.id, item_description: item, status: status)
     event.respond "Item '#{item}' added to #{status}."
   end
 end
@@ -119,7 +120,7 @@ bot.command(:bulkadd) do |event, *items|
     split_items.each do |item|
       item_description = item.chomp(",").strip
 
-      Item.create(user_id: event.user.id, server_id: event.server.id, item_description: item_description, status: status)
+      Item.create(user_id: event.user.id, server_id: event.server.id, channel_id: event.channel.id, item_description: item_description, status: status)
     end
 
     if split_items.count == 1
@@ -138,7 +139,7 @@ bot.command(:remove) do |event, status, position|
     if status != "todo" && status != "doing" && status != "done"
       event.respond("Invalid status. Available statuses are: todo, doing, done.")
     else
-      items = Item.where(server_id: event.server.id, status: status).order(:id)
+      items = Item.where(server_id: event.server.id, channel_id: event.channel.id, status: status).order(:id)
 
       if items[position - 1].nil?
         event.respond("No item exists in status #{status} at position #{position}")
@@ -166,7 +167,7 @@ bot.command(:move) do |event, current_status, position, new_status|
       return
     end
 
-    item = Item.where(server_id: event.server.id, status: current_status).order(:id)[position - 1]
+    item = Item.where(server_id: event.server.id, channel_id: event.channel.id, status: current_status).order(:id)[position - 1]
 
     if item.nil?
       event.respond("No item exists in status #{current_status} at position #{position} to move.")

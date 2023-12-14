@@ -41,6 +41,7 @@ def command_authorized(event)
 end
 
 def output_list(status, items, event)
+
   if status == "all"
     list = ["Todo Items:"]
 
@@ -78,6 +79,8 @@ end
 
 # List Items Command
 bot.command(:list) do |event, status|
+  puts "event: #{event}"
+  event.respond("#{event.inspect}")
   if command_authorized(event)
     if status.nil? || status == "" || status == " " || status == "all"
       items = Item.where(server_id: event.server.id).order(:status, :id)

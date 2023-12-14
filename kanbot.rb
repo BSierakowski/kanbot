@@ -79,8 +79,8 @@ end
 
 # List Items Command
 bot.command(:list) do |event, status|
-  puts "event: #{event}"
-  event.respond("#{event.inspect}")
+  puts "event: #{event.inspect}"
+  event.respond("#{event.attribute_names}")
   if command_authorized(event)
     if status.nil? || status == "" || status == " " || status == "all"
       items = Item.where(server_id: event.server.id).order(:status, :id)

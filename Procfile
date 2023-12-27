@@ -1,2 +1,2 @@
 worker: bundle exec ruby kanbot.rb
-web: bundle exec rackup config.ru
+web: bundle exec ruby ./webapp/app.rb -p $PORT

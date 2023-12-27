@@ -1,0 +1,5 @@
+source 'https://rubygems.org'
+
+# web gems
+gem 'sinatra'
+gem 'puma'

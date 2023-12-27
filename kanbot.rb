@@ -34,10 +34,7 @@ puts 'Click on it to invite it to your server.'
 
 # Helper Methods
 def command_authorized(event)
-  if event.user.id == "105638140722618368"
-    event.respond("You are not authorized to use this command.")
-    return false
-  end
+  # placeholder for future authorization logic
   return true
 end
 

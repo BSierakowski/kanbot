@@ -48,23 +48,23 @@ def output_list(status, items, event)
     list = ["Todo Items for #{channel_name}:"]
 
     todo_items = items.where(status: "todo")
-    todo_items.each do |item|
-      list << "- #{item.item_description}"
+    todo_items.each_with_index do |item, index|
+      list << "#{index + 1}. #{item.item_description}"
     end
 
     list << "------------"
     list << "Doing Items:"
 
     doing_items = items.where(status: "doing")
-    doing_items.each do |item|
-      list << "- #{item.item_description}"
+    doing_items.each_with_index do |item, index|
+      list << "#{index + 1}. #{item.item_description}"
     end
 
     list << "-----------"
     list << "Done Items:"
     done_items = items.where(status: "done")
-    done_items.each do |item|
-      list << "- #{item.item_description}"
+    done_items.each_with_index do |item, index|
+      list << "#{index + 1}. #{item.item_description}"
     end
   else
     list = ["#{status.capitalize} Items for #{channel_name}:"]

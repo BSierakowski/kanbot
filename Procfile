@@ -1,2 +1,2 @@
 worker: bundle exec ruby kanbot.rb
-web: rackup -p 9292 webapp/config.ru
+web: rackup -p 9292 config.ru

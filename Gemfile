@@ -5,3 +5,7 @@ gem 'discordrb'
 gem 'dotenv'
 gem 'pg'
 gem 'activerecord'
+
+# web gems
+gem 'sinatra'
+gem 'puma'

@@ -87,7 +87,6 @@ DEPENDENCIES
   dotenv
   pg
   puma
-  rack
   sinatra
 
 RUBY VERSION

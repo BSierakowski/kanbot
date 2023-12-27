@@ -9,6 +9,5 @@ gem 'pg'
 gem 'activerecord'
 
 # web gems
-gem 'rack'
 gem 'sinatra'
 gem 'puma'

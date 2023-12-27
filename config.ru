@@ -1,2 +1,2 @@
-require './webapp/kanbot_web'
+require './webapp'
 run Sinatra::Application

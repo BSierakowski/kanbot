@@ -184,7 +184,7 @@ bot.message(content: 'Ping!') do |event|
 end
 
 bot.command(:help) do |event|
-  event.respond("Kanbot Kan! \n \n Available commands: \n !list [status] \n !add [status] [item] \n !remove [status] [position] \n !move [current_status] [position] [new_status] \n \n Example: \n !list \n !list todo \n !add doing Build a Kanban Board \n !remove doing 1 \n !move doing 1 done")
+  event.respond("Kanbot Can! \n \n Available commands: \n !list [status] \n !add [status] [item] \n !remove [status] [position] \n !move [current_status] [position] [new_status] \n \n Example: \n !list \n !list todo \n !add doing Build a Kanban Board \n !remove doing 1 \n !move doing 1 done")
 end
 
 # Run the Bot

@@ -87,6 +87,7 @@ DEPENDENCIES
   dotenv
   pg
   puma
+  rack
   sinatra
 
 BUNDLED WITH

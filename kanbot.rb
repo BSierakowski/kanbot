@@ -247,6 +247,8 @@ bot.command(:react) do |event, word|
     emoji_sequence.each do |emoji|
       event.message.react(emoji)
     end
+
+    return
   end
 end
 

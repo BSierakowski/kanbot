@@ -187,9 +187,13 @@ bot.command(:help) do |event|
   event.respond("Kanbot Can! \n \n Available commands: \n !list [status] \n !add [status] [item] \n !remove [status] [position] \n !move [current_status] [position] [new_status] \n \n Example: \n !list \n !list todo \n !add doing Build a Kanban Board \n !remove doing 1 \n !move doing 1 done")
 end
 
-bot.command(:react) do |event|
-  event.message.react("👍")
-  event.message.react("👎")
+bot.command(:react) do |event, word|
+  if word.nil? || word == ""
+    event.message.react("👍")
+    return
+  else
+    event.message.react(word)
+  end
 end
 
 # Run the Bot

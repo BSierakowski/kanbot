@@ -188,18 +188,6 @@ bot.command(:help) do |event|
 end
 
 bot.command(:react) do |event, word|
-  if word.nil? || word == ""
-    event.message.react("👍")
-    return
-  else
-    emojis = to_emojis(word.strip)
-    emojis.each do |emoji|
-      event.message.react(emoji)
-    end
-  end
-end
-
-def to_emoji(str)
   emoji_map = {
     'A' => '🅰️', 'B' => '🅱️', 'C' => '©️', 'D' => '🇩', 'E' => '🇪',
     'F' => '🇫', 'G' => '🇬', 'H' => '🇭', 'I' => 'ℹ️', 'J' => '🇯',
@@ -209,13 +197,20 @@ def to_emoji(str)
     'Z' => '🇿'
   }
 
-  emoji_array = []
+  if word.nil? || word == ""
+    event.message.react("👍")
+    return
+  else
+    emoji_array = []
 
-  str.split.each do |c|
-    emoji_array << emoji_map.fetch(c.chr.upcase, c.chr)
+    word.split.each do |letter|
+      emoji_array << emoji_map[letter.upcase]
+    end
+
+    emoji_array.each do |emoji|
+      event.message.react(emoji)
+    end
   end
-
-  return emoji_array
 end
 
 # Run the Bot

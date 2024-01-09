@@ -192,7 +192,16 @@ bot.command(:react) do |event, word|
     event.message.react("👍")
     return
   else
-    event.message.react(word)
+    emojis = to_emojis(word.strip)
+    emojis.each do |emoji|
+      event.message.react(emoji)
+    end
+  end
+end
+
+def to_emoji(str)
+  str.codepoints.map do |c|
+    c.to_s(16)
   end
 end
 

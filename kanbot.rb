@@ -200,9 +200,22 @@ bot.command(:react) do |event, word|
 end
 
 def to_emoji(str)
-  str.codepoints.map do |c|
-    c.to_s(16)
+  emoji_map = {
+    'A' => '🅰️', 'B' => '🅱️', 'C' => '©️', 'D' => '🇩', 'E' => '🇪',
+    'F' => '🇫', 'G' => '🇬', 'H' => '🇭', 'I' => 'ℹ️', 'J' => '🇯',
+    'K' => '🇰', 'L' => '🇱', 'M' => 'Ⓜ️', 'N' => '🇳', 'O' => '🅾️',
+    'P' => '🅿️', 'Q' => '🇶', 'R' => '®️', 'S' => '💲', 'T' => '🇹',
+    'U' => '⛎', 'V' => '🇻', 'W' => '🇼', 'X' => '❌', 'Y' => '🇾',
+    'Z' => '🇿'
+  }
+
+  emoji_array = []
+
+  str.split.each do |c|
+    emoji_array << emoji_map.fetch(c.chr.upcase, c.chr)
   end
+
+  return emoji_array
 end
 
 # Run the Bot

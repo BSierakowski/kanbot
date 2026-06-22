@@ -68,7 +68,7 @@ To get this in running you need to:
 1) Create a heroku app
 2) Add the heroku remote to your git repo
 3) Add the heroku postgres addon
-4) Add the `TOKEN` env var.
+4) Add the `DISCORD_BOT_TOKEN` env var.
 
 ### Railway
 
@@ -81,7 +81,7 @@ Create a Railway project with:
 Set these variables on the app services:
 
 - `DATABASE_URL`: Railway's Postgres connection string
-- `TOKEN`: Discord bot token
+- `DISCORD_BOT_TOKEN`: Discord bot token
 - `SLACK_SIGNING_SECRET`: Slack app signing secret
 
 Railway can usually inject the Postgres connection string from the database service into the app services. The `railway.json` file runs `bundle exec ruby bin/migrate` before each deploy so the database schema is ready before the app starts.

@@ -9,7 +9,7 @@ puts "starting Kanbot..."
 
 # Here we instantiate a `CommandBot` instead of a regular `Bot`, which has the functionality to add commands using the
 # `command` method. We have to set a `prefix` here, which will be the character that triggers command execution.
-bot = Discordrb::Commands::CommandBot.new token: ENV['TOKEN'], prefix: '!'
+bot = Discordrb::Commands::CommandBot.new token: ENV['DISCORD_BOT_TOKEN'], prefix: '!'
 commands = Kanbot::Commands.new
 
 puts "This bot's invite URL is #{bot.invite_url}."

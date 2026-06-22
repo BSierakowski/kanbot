@@ -31,7 +31,8 @@ Slack slash command:
 Running the bot locally should be a function of: 
 1) bundling the required gems
 2) creating a database
-3) and `bundle exec ruby kanbot.rb`
+3) running `bundle exec ruby bin/migrate`
+4) and `bundle exec ruby kanbot.rb`
 
 I say should because my workflow has been to deploy to heroku and test there.
 
@@ -83,7 +84,13 @@ Set these variables on the app services:
 - `TOKEN`: Discord bot token
 - `SLACK_SIGNING_SECRET`: Slack app signing secret
 
-Railway can usually inject the Postgres connection string from the database service into the app services. The app creates and updates the `items` table on startup, so there is no separate migration command yet.
+Railway can usually inject the Postgres connection string from the database service into the app services. The `railway.json` file runs `bundle exec ruby bin/migrate` before each deploy so the database schema is ready before the app starts.
+
+To initialize the database manually from Railway, run this command against either app service after `DATABASE_URL` is set:
+
+```sh
+bundle exec ruby bin/migrate
+```
 
 Run the `worker` process for Discord and the `web` process for the landing page and Slack slash command endpoint. Point Slack's `/kanbot` request URL at:
 

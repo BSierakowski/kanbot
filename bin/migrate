@@ -1,0 +1,5 @@
+require 'dotenv/load'
+require_relative '../lib/kanbot/database'
+
+Kanbot.establish_database_connection
+puts 'Database is ready.'

@@ -23,18 +23,25 @@ module Kanbot
 
   def self.establish_database_connection
     ActiveRecord::Base.establish_connection(ENV['DATABASE_URL'] || 'postgres://localhost/mydb')
+    migrate_database
+  end
+
+  def self.migrate_database
     ActiveRecord::Base.connection.exec_query(CREATE_ITEMS_TABLE_SQL)
+    ActiveRecord::Base.connection.execute('SELECT pg_advisory_lock(2426268)')
     migrate_items_table
+  ensure
+    ActiveRecord::Base.connection.execute('SELECT pg_advisory_unlock(2426268)') if ActiveRecord::Base.connected?
   end
 
   def self.migrate_items_table
     connection = ActiveRecord::Base.connection
 
-    add_column_unless_exists(connection, :platform, :string, limit: 32)
-    add_column_unless_exists(connection, :workspace_id, :string, limit: 255)
-    add_column_unless_exists(connection, :room_id, :string, limit: 255)
-    add_column_unless_exists(connection, :creator_id, :string, limit: 255)
-    add_column_unless_exists(connection, :room_name, :string, limit: 255)
+    add_column_unless_exists(connection, :platform, 'VARCHAR ( 32 )')
+    add_column_unless_exists(connection, :workspace_id, 'VARCHAR ( 255 )')
+    add_column_unless_exists(connection, :room_id, 'VARCHAR ( 255 )')
+    add_column_unless_exists(connection, :creator_id, 'VARCHAR ( 255 )')
+    add_column_unless_exists(connection, :room_name, 'VARCHAR ( 255 )')
 
     [:user_id, :server_id, :channel_id].each do |column|
       connection.change_column_null(:items, column, true) if connection.column_exists?(:items, column)
@@ -65,9 +72,7 @@ module Kanbot
     SQL
   end
 
-  def self.add_column_unless_exists(connection, column_name, column_type, **options)
-    return if connection.column_exists?(:items, column_name)
-
-    connection.add_column(:items, column_name, column_type, **options)
+  def self.add_column_unless_exists(connection, column_name, column_type)
+    connection.execute("ALTER TABLE items ADD COLUMN IF NOT EXISTS #{column_name} #{column_type}")
   end
 end

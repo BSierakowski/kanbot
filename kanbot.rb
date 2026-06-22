@@ -4,7 +4,7 @@ require 'pg'
 require 'active_record'
 
 class Item < ActiveRecord::Base
-  enum status: [:todo, :doing, :done]
+  enum :status, [:todo, :doing, :done]
 end
 
 CREATE_ITEMS_TABLE_SQL = <<~SQL

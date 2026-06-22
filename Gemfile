@@ -11,3 +11,4 @@ gem 'activerecord'
 # web gems
 gem 'sinatra'
 gem 'puma'
+gem 'rackup', '~> 2.3'

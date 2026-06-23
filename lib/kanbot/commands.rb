@@ -2,6 +2,11 @@ require_relative 'database'
 
 module Kanbot
   STATUSES = ['todo', 'doing', 'done'].freeze
+  STATUS_LABELS = {
+    'todo' => 'TODO',
+    'doing' => 'DOING',
+    'done' => 'DONE'
+  }.freeze
 
   HELP_TEXT = <<~HELP.freeze
     Kanbot Can!
@@ -162,37 +167,35 @@ module Kanbot
       room_name = room.room_name || room.room_id
 
       if status == 'all'
-        list = ["Todo Items for #{room_name}:"]
+        board = ["*Kanbot board for #{room_name}*"]
 
-        todo_items = items.where(status: 'todo')
-        todo_items.each_with_index do |item, index|
-          list << "#{index + 1}. #{item.item_description}"
-        end
-
-        list << '------------'
-        list << 'Doing Items:'
-
-        doing_items = items.where(status: 'doing')
-        doing_items.each_with_index do |item, index|
-          list << "#{index + 1}. #{item.item_description}"
-        end
-
-        list << '-----------'
-        list << 'Done Items:'
-
-        done_items = items.where(status: 'done')
-        done_items.each_with_index do |item, index|
-          list << "#{index + 1}. #{item.item_description}"
+        STATUSES.each do |section_status|
+          board << ''
+          board << status_section(STATUS_LABELS.fetch(section_status), items.where(status: section_status))
         end
       else
-        list = ["#{status.capitalize} Items for #{room_name}:"]
-
-        items.each_with_index do |item, index|
-          list << "#{index + 1}. #{item.item_description}"
-        end
+        board = ["*#{STATUS_LABELS.fetch(status)} items for #{room_name}*"]
+        board << ''
+        board << item_block(items)
       end
 
-      list.join("\n")
+      board.join("\n")
+    end
+
+    def status_section(label, items)
+      ["#{label}", item_block(items)].join("\n")
+    end
+
+    def item_block(items)
+      lines = []
+
+      items.each_with_index do |item, index|
+        lines << "#{index + 1}. #{item.item_description}"
+      end
+
+      lines << 'No items yet.' if lines.empty?
+
+      ["```", *lines, "```"].join("\n")
     end
   end
 end

@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-ruby '3.2.2'
+ruby '3.4.10'
 
 # discord bot gems
 gem 'discordrb'

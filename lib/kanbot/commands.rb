@@ -1,3 +1,4 @@
+require_relative 'board'
 require_relative 'database'
 
 module Kanbot
@@ -38,21 +39,23 @@ module Kanbot
   )
 
   class Commands
-    def initialize(item_model: Item)
+    def initialize(item_model: Item, board_model: Board, web_url: ENV['KANBOT_WEB_URL'])
       @item_model = item_model
+      @board_model = board_model
+      @web_url = web_url.to_s.strip.chomp('/')
     end
 
     def list(room, status = nil)
       status = status.to_s.strip
-      items = room_items(room)
+      items = room_items(room).ordered
 
       if status.empty? || status == 'all'
-        return output_list(room, 'all', items.order(:status, :id))
+        return output_list(room, 'all', items)
       end
 
       return invalid_status unless valid_status?(status)
 
-      output_list(room, status, items.where(status: status).order(:id))
+      output_list(room, status, items.where(status: status))
     end
 
     def add(room, status, item_words)
@@ -68,7 +71,7 @@ module Kanbot
       return 'Please provide an item to add.' if description.empty?
 
       item_description = "#{description} - #{room.user_name}"
-      @item_model.create!(item_attributes(room).merge(item_description: item_description, status: status))
+      create_item(room, item_description, status)
 
       "Item '#{item_description}' added to #{status}."
     end
@@ -78,8 +81,7 @@ module Kanbot
       return 'Please provide at least one item to add.' if split_items.empty?
 
       split_items.each do |item|
-        item_description = "#{item} - #{room.user_name}"
-        @item_model.create!(item_attributes(room).merge(item_description: item_description, status: 'todo'))
+        create_item(room, "#{item} - #{room.user_name}", 'todo')
       end
 
       item_label = split_items.count == 1 ? 'item' : 'items'
@@ -93,7 +95,7 @@ module Kanbot
       position = position.to_i
       return invalid_position if position <= 0
 
-      item = room_items(room).where(status: status).order(:id)[position - 1]
+      item = room_items(room).where(status: status).ordered[position - 1]
 
       return "No item exists in status #{status} at position #{position}" if item.nil?
 
@@ -116,10 +118,10 @@ module Kanbot
 
       return invalid_position if position <= 0
 
-      item = room_items(room).where(status: current_status).order(:id)[position - 1]
+      item = room_items(room).where(status: current_status).ordered[position - 1]
       return "No item exists in status #{current_status} at position #{position} to move." if item.nil?
 
-      item.update!(status: new_status)
+      item.update!(status: new_status, position: next_position(room, new_status))
       "Item '#{item.item_description}' moved from #{current_status} to #{new_status}."
     end
 
@@ -143,6 +145,20 @@ module Kanbot
 
     def room_items(room)
       @item_model.where(platform: room.platform, workspace_id: room.workspace_id, room_id: room.room_id)
+    end
+
+    def next_position(room, status)
+      room_items(room).where(status: status).next_position
+    end
+
+    def create_item(room, item_description, status)
+      @item_model.create!(
+        item_attributes(room).merge(
+          item_description: item_description,
+          status: status,
+          position: next_position(room, status)
+        )
+      )
     end
 
     def item_attributes(room)
@@ -179,7 +195,16 @@ module Kanbot
         board << item_block(items)
       end
 
+      unless @web_url.empty?
+        board << ''
+        board << "Open the board to add and move cards: <#{board_url(room)}>"
+      end
+
       board.join("\n")
+    end
+
+    def board_url(room)
+      "#{@web_url}/boards/#{@board_model.for_room(room).token}"
     end
 
     def status_section(label, items)

@@ -73,7 +73,7 @@ bot.message(content: 'Ping!') do |event|
 end
 
 bot.command(:help) do |event|
-  event.respond("Kanbot Can! \n \n Available commands: \n !list [status] \n !add [status] [item] \n !bulkadd [item], [item] \n !remove [status] [position] \n !move [current_status] [position] [new_status] \n \n Example: \n !list \n !list todo \n !add doing Build a Kanban Board \n !bulkadd Write docs, Ship Slack support \n !remove doing 1 \n !move doing 1 done")
+  event.respond("Kanbot Can! \n \n Available commands: \n !list [status] \n !add [status] [item] \n !bulkadd [item], [item] \n !remove [status] [position] \n !move [current_status] [position] [new_status] \n \n Example: \n !list \n !list todo \n !add doing Build a Kanban Board \n !bulkadd Write docs, Ship Slack support \n !remove doing 1 \n !move doing 1 done \n \n !list also links to this channel's kanban board, where you can add cards and drag them between columns.")
 end
 
 bot.command(:react) do |event, word|

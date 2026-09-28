@@ -26,6 +26,27 @@ try {
       status int NOT NULL
     )
   `);
+  // Tables created before Slack support only have the Discord columns. Add the
+  // room columns and fill them in so older Discord items stay on their boards.
+  await client.query(`
+    ALTER TABLE items
+      ADD COLUMN IF NOT EXISTS platform VARCHAR ( 32 ),
+      ADD COLUMN IF NOT EXISTS workspace_id VARCHAR ( 255 ),
+      ADD COLUMN IF NOT EXISTS room_id VARCHAR ( 255 ),
+      ADD COLUMN IF NOT EXISTS creator_id VARCHAR ( 255 ),
+      ADD COLUMN IF NOT EXISTS room_name VARCHAR ( 255 ),
+      ALTER COLUMN user_id DROP NOT NULL,
+      ALTER COLUMN server_id DROP NOT NULL,
+      ALTER COLUMN channel_id DROP NOT NULL
+  `);
+  await client.query(`
+    UPDATE items
+    SET platform = COALESCE(platform, 'discord'),
+        workspace_id = COALESCE(workspace_id, server_id::text),
+        room_id = COALESCE(room_id, channel_id::text),
+        creator_id = COALESCE(creator_id, user_id::text)
+    WHERE platform IS NULL OR workspace_id IS NULL OR room_id IS NULL OR creator_id IS NULL
+  `);
   await client.query('COMMIT');
   console.log('Database is ready.');
 } catch (error) {

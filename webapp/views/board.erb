@@ -1,0 +1,44 @@
+<header class="topbar">
+  <a class="brand" href="/">
+    <img src="/kanbot-logo.svg" alt="">
+    <span>Kanbot</span>
+  </a>
+
+  <div class="board-title">
+    <h1><%= h @title %></h1>
+    <span class="platform"><%= h @board.platform.capitalize %></span>
+  </div>
+
+  <label class="author">
+    <span>Adding cards as</span>
+    <input id="author" type="text" maxlength="80" placeholder="Your name" autocomplete="nickname">
+  </label>
+</header>
+
+<main id="board" class="board" data-items-url="/boards/<%= h @board.token %>/items" data-board="<%= h JSON.generate(board_payload(@board)) %>">
+  <% Kanbot::STATUSES.each do |status| %>
+    <% label = Kanbot::STATUS_LABELS.fetch(status) %>
+    <section class="column" data-status="<%= status %>" data-label="<%= label %>" aria-labelledby="column-<%= status %>">
+      <header class="column-header">
+        <h2 id="column-<%= status %>"><span class="dot"></span><%= label %></h2>
+        <span class="count" data-count>0</span>
+      </header>
+
+      <ol class="cards" data-status="<%= status %>"></ol>
+
+      <form class="add-card" data-status="<%= status %>">
+        <input name="description" type="text" maxlength="1000" placeholder="Add a card" aria-label="Add a card to <%= label %>" autocomplete="off">
+        <button type="submit">Add</button>
+      </form>
+    </section>
+  <% end %>
+</main>
+
+<p class="hint">
+  Drag cards between columns to move them. Changes show up the next time someone runs <code><%= h list_command(@board) %></code>.
+</p>
+<noscript><p class="hint">Turn on JavaScript to use the board.</p></noscript>
+<div class="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/Sortable.min.js" defer></script>
+<script src="/board.js" defer></script>

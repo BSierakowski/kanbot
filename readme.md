@@ -30,7 +30,7 @@ Kanbot runs on Vercel:
 - `public/` is the marketing page.
 - `api/discord.ts` receives Discord slash commands at `/api/discord`.
 - `api/slack.ts` receives the Slack slash command at `/api/slack`.
-- `lib/board.ts` holds the board logic both platforms share. Items are stored in Postgres (Neon).
+- `lib/board.ts` holds the board logic both platforms share, and `lib/discord.ts` and `lib/slack.ts` format the board for each platform. Items are stored in Postgres (Neon).
 
 Lists are stored per channel, scoped by Discord server or Slack workspace.
 

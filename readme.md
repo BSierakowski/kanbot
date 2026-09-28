@@ -50,6 +50,22 @@ Lists are stored per channel, scoped by Discord server or Slack workspace.
 3) Add `DISCORD_PUBLIC_KEY` and `SLACK_SIGNING_SECRET` to the project's environment variables.
 4) Deploy. Every build runs `npm run migrate`, so the database schema is ready before the new version goes live.
 
+### Moving an existing Kanbot database
+
+`npm run migrate` also upgrades tables from older versions of Kanbot, including the Discord-only table from before Slack support, so existing items stay on their channel's board.
+
+If the old app already used Neon, you can skip the copy below and set `DATABASE_URL` in Vercel to that database instead of adding a new one.
+
+Otherwise, copy the items from the old Heroku or Railway database into the new one before pointing Discord and Slack at Vercel. Stop the old worker and web processes first so nothing writes to the old database during the copy. Set `OLD_DATABASE_URL` to the old database (on Railway, use the Postgres service's `DATABASE_PUBLIC_URL`) and `DATABASE_URL` to the new one (Neon's unpooled connection string), then run:
+
+```sh
+npm run migrate
+pg_dump --data-only --table=items "$OLD_DATABASE_URL" | psql "$DATABASE_URL"
+npm run migrate
+```
+
+The first `npm run migrate` creates the table in the empty database, and the second fills in the channel columns for older Discord items.
+
 ### Discord Setup
 
 Register the slash command, and run it again whenever the command definition in `lib/discord.ts` changes:

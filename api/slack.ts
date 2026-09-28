@@ -1,4 +1,7 @@
-import { isValidSlackRequest, runSlackCommand } from '../lib/slack.js';
+import { waitUntil } from '@vercel/functions';
+
+import { beforeDeadline, replyOrFailure } from '../lib/reply.js';
+import { isValidSlackRequest, postDelayedResponse, runSlackCommand } from '../lib/slack.js';
 
 export async function POST(request: Request): Promise<Response> {
   const body = await request.text();
@@ -9,7 +12,12 @@ export async function POST(request: Request): Promise<Response> {
     return new Response('Invalid Slack signature', { status: 401 });
   }
 
-  const text = await runSlackCommand(new URLSearchParams(body));
+  const params = new URLSearchParams(body);
+  const reply = replyOrFailure(runSlackCommand(params));
+  const text = await beforeDeadline(reply);
+  if (text !== undefined) return Response.json({ response_type: 'in_channel', text });
 
-  return Response.json({ response_type: 'in_channel', text });
+  const responseUrl = params.get('response_url') ?? '';
+  waitUntil(reply.then((late) => postDelayedResponse(responseUrl, late)).catch(console.error));
+  return Response.json({ response_type: 'in_channel' });
 }

@@ -21,6 +21,18 @@ export function isValidSlackRequest(headers: Headers, body: string, signingSecre
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 
+export async function postDelayedResponse(responseUrl: string, text: string): Promise<void> {
+  const response = await fetch(responseUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ response_type: 'in_channel', text }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Slack rejected the delayed response with ${response.status}: ${await response.text()}`);
+  }
+}
+
 export async function runSlackCommand(params: URLSearchParams): Promise<string> {
   const room: Room = {
     platform: 'slack',

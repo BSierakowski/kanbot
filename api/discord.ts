@@ -1,12 +1,18 @@
+import { waitUntil } from '@vercel/functions';
+
 import {
   APPLICATION_COMMAND,
   CHANNEL_MESSAGE_WITH_SOURCE,
+  DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+  editOriginalResponse,
   isValidDiscordRequest,
   PING,
   PONG,
   runDiscordCommand,
   type Interaction,
+  type MessageData,
 } from '../lib/discord.js';
+import { beforeDeadline, replyOrFailure } from '../lib/reply.js';
 
 const DISCORD_MESSAGE_LIMIT = 2000;
 
@@ -23,10 +29,14 @@ export async function POST(request: Request): Promise<Response> {
   if (interaction.type === PING) return Response.json({ type: PONG });
   if (interaction.type !== APPLICATION_COMMAND) return new Response('Unsupported interaction', { status: 400 });
 
-  const content = await runDiscordCommand(interaction);
+  const reply = replyOrFailure(runDiscordCommand(interaction)).then(message);
+  const data = await beforeDeadline(reply);
+  if (data) return Response.json({ type: CHANNEL_MESSAGE_WITH_SOURCE, data });
 
-  return Response.json({
-    type: CHANNEL_MESSAGE_WITH_SOURCE,
-    data: { content: content.slice(0, DISCORD_MESSAGE_LIMIT), allowed_mentions: { parse: [] } },
-  });
+  waitUntil(reply.then((late) => editOriginalResponse(interaction, late)).catch(console.error));
+  return Response.json({ type: DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE });
+}
+
+function message(content: string): MessageData {
+  return { content: content.slice(0, DISCORD_MESSAGE_LIMIT), allowed_mentions: { parse: [] } };
 }

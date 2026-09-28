@@ -7,6 +7,7 @@ export const PING = 1;
 export const APPLICATION_COMMAND = 2;
 export const PONG = 1;
 export const CHANNEL_MESSAGE_WITH_SOURCE = 4;
+export const DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE = 5;
 
 const SUB_COMMAND = 1;
 const STRING = 3;
@@ -30,6 +31,8 @@ interface CommandOption {
 
 export interface Interaction {
   type: number;
+  application_id: string;
+  token: string;
   data?: { name: string; options?: CommandOption[] };
   guild_id?: string;
   channel?: { id: string; name?: string };
@@ -113,6 +116,22 @@ export function isValidDiscordRequest(headers: Headers, body: string, publicKey:
     return verify(null, Buffer.from(timestamp + body), key, Buffer.from(signature, 'hex'));
   } catch {
     return false;
+  }
+}
+
+export interface MessageData {
+  content: string;
+  allowed_mentions: { parse: string[] };
+}
+
+export async function editOriginalResponse(interaction: Interaction, data: MessageData): Promise<void> {
+  const response = await fetch(
+    `https://discord.com/api/v10/webhooks/${interaction.application_id}/${interaction.token}/messages/@original`,
+    { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Discord rejected the deferred reply with ${response.status}: ${await response.text()}`);
   }
 }
 

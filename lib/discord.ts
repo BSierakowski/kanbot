@@ -1,13 +1,17 @@
 import { createPublicKey, verify } from 'node:crypto';
 
 import * as board from './board.js';
-import type { Room } from './board.js';
+import type { Board, BoardItem, Room } from './board.js';
 
 export const PING = 1;
 export const APPLICATION_COMMAND = 2;
 export const PONG = 1;
 export const CHANNEL_MESSAGE_WITH_SOURCE = 4;
 export const DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE = 5;
+export const SUPPRESS_EMBEDS = 1 << 2;
+export const DISCORD_MESSAGE_LIMIT = 2000;
+
+const MAX_ITEM_LENGTH = 1000;
 
 const SUB_COMMAND = 1;
 const STRING = 3;
@@ -33,7 +37,7 @@ export interface Interaction {
   type: number;
   application_id: string;
   token: string;
-  data?: { name: string; options?: CommandOption[] };
+  data?: { id: string; name: string; options?: CommandOption[] };
   guild_id?: string;
   channel?: { id: string; name?: string };
   channel_id?: string;
@@ -122,6 +126,7 @@ export function isValidDiscordRequest(headers: Headers, body: string, publicKey:
 export interface MessageData {
   content: string;
   allowed_mentions: { parse: string[] };
+  flags: number;
 }
 
 export async function editOriginalResponse(interaction: Interaction, data: MessageData): Promise<void> {
@@ -152,7 +157,7 @@ export async function runDiscordCommand(interaction: Interaction): Promise<strin
 
   switch (subcommand?.name) {
     case 'list':
-      return board.list(room, text('status'));
+      return board.list(room, text('status'), (listed) => formatBoard(listed, interaction.data?.id));
     case 'add':
       return board.add(room, text('status'), [text('item') ?? '']);
     case 'bulkadd':
@@ -164,4 +169,77 @@ export async function runDiscordCommand(interaction: Interaction): Promise<strin
     default:
       return board.HELP_TEXT;
   }
+}
+
+export function formatBoard({ roomId, roomName, sections }: Board, commandId?: string): string {
+  const command = (name: string) => (commandId ? `</kanbot ${name}:${commandId}>` : `\`/kanbot ${name}\``);
+  const fullBoard = sections.length > 1;
+  const items = sections.flatMap((section) => section.items);
+  const soleAuthor = new Set(items.map((item) => item.creatorId)).size === 1 ? author(items[0]) : undefined;
+  const shown = sections.map((section) => ({
+    section,
+    start: fullBoard && section.status === 'done' ? Math.max(0, section.items.length - board.DONE_SHOWN_ON_FULL_BOARD) : 0,
+    end: section.items.length,
+  }));
+
+  const render = () => {
+    const lines = [`## Kanbot board for ${roomName ? `#${escapeMarkdown(roomName)}` : `<#${roomId}>`}`];
+
+    for (const { section, start, end } of shown) {
+      const { title, empty } = board.SECTIONS[section.status];
+      const seeAll = fullBoard ? `, see ${command('list')} ${section.status}` : '';
+      lines.push(`### ${title} · ${section.items.length}`);
+
+      if (section.items.length === 0) {
+        lines.push(`-# ${empty}`);
+        continue;
+      }
+
+      if (start > 0) lines.push(`-# …${start} earlier${seeAll}`);
+      for (const item of section.items.slice(start, end)) {
+        const byline = soleAuthor === undefined && author(item) ? ` · ${author(item)}` : '';
+        lines.push(`${item.position}. ${escapeMarkdown(truncate(item.description))}${byline}`);
+      }
+      // Discord folds a line that directly follows a list item into that item, so each list ends with a blank line.
+      lines.push('');
+      if (end < section.items.length) lines.push(`-# …and ${section.items.length - end} more${seeAll}`);
+    }
+
+    const hint =
+      items.length === 0 ? `Add one with ${command('add')}` : `Use the numbers with ${command('move')} or ${command('remove')}`;
+    if (lines.at(-1) !== '') lines.push('');
+    lines.push(`-# ${soleAuthor ? `Added by ${soleAuthor} · ` : ''}${hint}`);
+    return lines.join('\n');
+  };
+
+  let content = render();
+  while (content.length > DISCORD_MESSAGE_LIMIT) {
+    const longest = shown.reduce((most, next) => (next.end - next.start > most.end - most.start ? next : most));
+    if (longest.end === longest.start) break;
+
+    if (longest.section.status === 'done') longest.start += 1;
+    else longest.end -= 1;
+    content = render();
+  }
+
+  return content;
+}
+
+function author(item: BoardItem): string {
+  if (item.creatorId) return `<@${item.creatorId}>`;
+  return item.creatorName ? escapeMarkdown(item.creatorName) : '';
+}
+
+function truncate(text: string): string {
+  const characters = [...text];
+  return characters.length > MAX_ITEM_LENGTH ? `${characters.slice(0, MAX_ITEM_LENGTH - 1).join('')}…` : text;
+}
+
+function escapeMarkdown(text: string): string {
+  const escaped = text
+    .split(/(https?:\/\/\S+)/)
+    .map((part, index) => (index % 2 === 1 ? part : part.replace(/[\\*_~`|[\]]/g, '\\$&')))
+    .join('');
+
+  return escaped.replace(/^[#>-]/, '\\$&').replace(/^(\d+)\./, '$1\\.');
 }

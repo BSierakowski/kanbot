@@ -21,6 +21,7 @@ try {
       workspace_id VARCHAR ( 255 ),
       room_id VARCHAR ( 255 ),
       creator_id VARCHAR ( 255 ),
+      creator_name VARCHAR ( 255 ),
       room_name VARCHAR ( 255 ),
       item_description VARCHAR ( 2048 ) NOT NULL,
       status int NOT NULL
@@ -46,6 +47,18 @@ try {
         room_id = COALESCE(room_id, channel_id::text),
         creator_id = COALESCE(creator_id, user_id::text)
     WHERE platform IS NULL OR workspace_id IS NULL OR room_id IS NULL OR creator_id IS NULL
+  `);
+  // Items used to store their author as a " - username" suffix on the description.
+  await client.query('ALTER TABLE items ADD COLUMN IF NOT EXISTS creator_name VARCHAR ( 255 )');
+  await client.query(`
+    UPDATE items
+    SET item_description = split.parts[1], creator_name = split.parts[2]
+    FROM (
+      SELECT id, regexp_match(item_description, '^(.+) - (\\S+)$') AS parts
+      FROM items
+      WHERE creator_name IS NULL
+    ) AS split
+    WHERE items.id = split.id AND split.parts IS NOT NULL
   `);
   await client.query('COMMIT');
   console.log('Database is ready.');

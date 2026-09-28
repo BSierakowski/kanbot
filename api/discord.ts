@@ -4,17 +4,17 @@ import {
   APPLICATION_COMMAND,
   CHANNEL_MESSAGE_WITH_SOURCE,
   DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+  DISCORD_MESSAGE_LIMIT,
   editOriginalResponse,
   isValidDiscordRequest,
   PING,
   PONG,
   runDiscordCommand,
+  SUPPRESS_EMBEDS,
   type Interaction,
   type MessageData,
 } from '../lib/discord.js';
 import { beforeDeadline, replyOrFailure } from '../lib/reply.js';
-
-const DISCORD_MESSAGE_LIMIT = 2000;
 
 export async function POST(request: Request): Promise<Response> {
   const body = await request.text();
@@ -38,5 +38,5 @@ export async function POST(request: Request): Promise<Response> {
 }
 
 function message(content: string): MessageData {
-  return { content: content.slice(0, DISCORD_MESSAGE_LIMIT), allowed_mentions: { parse: [] } };
+  return { content: content.slice(0, DISCORD_MESSAGE_LIMIT), allowed_mentions: { parse: [] }, flags: SUPPRESS_EMBEDS };
 }

@@ -3,11 +3,13 @@ import { pool } from './db.js';
 export const STATUSES = ['todo', 'doing', 'done'] as const;
 export type Status = (typeof STATUSES)[number];
 
-const STATUS_LABELS: Record<Status, string> = {
-  todo: 'TODO',
-  doing: 'DOING',
-  done: 'DONE',
+export const SECTIONS: Record<Status, { title: string; empty: string }> = {
+  todo: { title: '📋 Todo', empty: 'Nothing to do' },
+  doing: { title: '🔨 Doing', empty: 'Nothing in progress' },
+  done: { title: '✅ Done', empty: 'Nothing finished yet' },
 };
+
+export const DONE_SHOWN_ON_FULL_BOARD = 5;
 
 export const HELP_TEXT = `Kanbot Can!
 
@@ -37,30 +39,49 @@ export interface Room {
   userName: string;
 }
 
+export interface BoardItem {
+  position: number;
+  description: string;
+  creatorId: string | null;
+  creatorName: string | null;
+}
+
+export interface Board {
+  roomId: string;
+  roomName: string | null;
+  sections: { status: Status; items: BoardItem[] }[];
+}
+
 interface Item {
   item_description: string;
   status: number;
+  creator_id: string | null;
+  creator_name: string | null;
 }
 
-export async function list(room: Room, status = ''): Promise<string> {
-  const requested = status.trim();
-  const roomName = room.roomName ?? room.roomId;
+export async function list(room: Room, status: string | undefined, format: (board: Board) => string): Promise<string> {
+  const requested = (status ?? '').trim();
+  let statuses: readonly Status[] = STATUSES;
 
-  if (requested === '' || requested === 'all') {
-    const items = await roomItems(room);
-    const board = [`*Kanbot board for ${roomName}*`];
-
-    STATUSES.forEach((sectionStatus, index) => {
-      board.push('', STATUS_LABELS[sectionStatus], itemBlock(items.filter((item) => item.status === index)));
-    });
-
-    return board.join('\n');
+  if (requested !== '' && requested !== 'all') {
+    if (!isStatus(requested)) return INVALID_STATUS;
+    statuses = [requested];
   }
 
-  if (!isStatus(requested)) return INVALID_STATUS;
+  const items = await roomItems(room, statuses.length === 1 ? statuses[0] : undefined);
+  const sections = statuses.map((sectionStatus) => ({
+    status: sectionStatus,
+    items: items
+      .filter((item) => item.status === STATUSES.indexOf(sectionStatus))
+      .map((item, index) => ({
+        position: index + 1,
+        description: item.item_description,
+        creatorId: item.creator_id,
+        creatorName: item.creator_name,
+      })),
+  }));
 
-  const items = await roomItems(room, requested);
-  return [`*${STATUS_LABELS[requested]} items for ${roomName}*`, '', itemBlock(items)].join('\n');
+  return format({ roomId: room.roomId, roomName: room.roomName, sections });
 }
 
 export async function add(room: Room, status: string | undefined, itemWords: string[]): Promise<string> {
@@ -71,10 +92,9 @@ export async function add(room: Room, status: string | undefined, itemWords: str
   const description = words.join(' ').trim();
   if (description === '') return 'Please provide an item to add.';
 
-  const itemDescription = `${description} - ${room.userName}`;
-  await insertItem(room, itemDescription, itemStatus);
+  await insertItem(room, description, itemStatus);
 
-  return `Item '${itemDescription}' added to ${itemStatus}.`;
+  return `Item '${description}' added to ${itemStatus}.`;
 }
 
 export async function bulkadd(room: Room, itemWords: string[]): Promise<string> {
@@ -86,7 +106,7 @@ export async function bulkadd(room: Room, itemWords: string[]): Promise<string> 
   if (items.length === 0) return 'Please provide at least one item to add.';
 
   for (const item of items) {
-    await insertItem(room, `${item} - ${room.userName}`, 'todo');
+    await insertItem(room, item, 'todo');
   }
 
   const itemLabel = items.length === 1 ? 'item' : 'items';
@@ -159,7 +179,8 @@ function roomKey(room: Room): string[] {
 
 async function roomItems(room: Room, status?: Status): Promise<Item[]> {
   const params: (string | number)[] = roomKey(room);
-  let sql = 'SELECT item_description, status FROM items WHERE platform = $1 AND workspace_id = $2 AND room_id = $3';
+  let sql =
+    'SELECT item_description, status, creator_id, creator_name FROM items WHERE platform = $1 AND workspace_id = $2 AND room_id = $3';
 
   if (status) {
     params.push(STATUSES.indexOf(status));
@@ -174,15 +195,8 @@ async function insertItem(room: Room, itemDescription: string, status: Status): 
   const discordIds = room.platform === 'discord' ? [room.userId, room.workspaceId, room.roomId] : [null, null, null];
 
   await pool.query(
-    `INSERT INTO items (platform, workspace_id, room_id, room_name, creator_id, user_id, server_id, channel_id, item_description, status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-    [...roomKey(room), room.roomName, room.userId, ...discordIds, itemDescription, STATUSES.indexOf(status)],
+    `INSERT INTO items (platform, workspace_id, room_id, room_name, creator_id, creator_name, user_id, server_id, channel_id, item_description, status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+    [...roomKey(room), room.roomName, room.userId, room.userName, ...discordIds, itemDescription, STATUSES.indexOf(status)],
   );
-}
-
-function itemBlock(items: Item[]): string {
-  const lines = items.map((item, index) => `${index + 1}. ${item.item_description}`);
-  if (lines.length === 0) lines.push('No items yet.');
-
-  return ['```', ...lines, '```'].join('\n');
 }

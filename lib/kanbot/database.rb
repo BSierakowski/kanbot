@@ -2,6 +2,12 @@ require 'active_record'
 
 class Item < ActiveRecord::Base
   enum :status, [:todo, :doing, :done]
+
+  scope :ordered, -> { order(:position, :id) }
+
+  def self.next_position
+    maximum(:position).to_i + 1
+  end
 end
 
 module Kanbot
@@ -17,7 +23,20 @@ module Kanbot
       creator_id VARCHAR ( 255 ),
       room_name VARCHAR ( 255 ),
       item_description VARCHAR ( 2048 ) NOT NULL,
-      status int NOT NULL
+      status int NOT NULL,
+      position int
+    );
+  SQL
+
+  CREATE_BOARDS_TABLE_SQL = <<~SQL
+    CREATE TABLE IF NOT EXISTS boards (
+      id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      platform VARCHAR ( 32 ) NOT NULL,
+      workspace_id VARCHAR ( 255 ) NOT NULL,
+      room_id VARCHAR ( 255 ) NOT NULL,
+      room_name VARCHAR ( 255 ),
+      token VARCHAR ( 64 ) NOT NULL UNIQUE,
+      UNIQUE ( platform, workspace_id, room_id )
     );
   SQL
 
@@ -30,6 +49,7 @@ module Kanbot
     ActiveRecord::Base.connection.exec_query(CREATE_ITEMS_TABLE_SQL)
     ActiveRecord::Base.connection.execute('SELECT pg_advisory_lock(2426268)')
     migrate_items_table
+    ActiveRecord::Base.connection.exec_query(CREATE_BOARDS_TABLE_SQL)
   ensure
     ActiveRecord::Base.connection.execute('SELECT pg_advisory_unlock(2426268)') if ActiveRecord::Base.connected?
   end
@@ -42,6 +62,7 @@ module Kanbot
     add_column_unless_exists(connection, :room_id, 'VARCHAR ( 255 )')
     add_column_unless_exists(connection, :creator_id, 'VARCHAR ( 255 )')
     add_column_unless_exists(connection, :room_name, 'VARCHAR ( 255 )')
+    add_column_unless_exists(connection, :position, 'int')
 
     [:user_id, :server_id, :channel_id].each do |column|
       connection.change_column_null(:items, column, true) if connection.column_exists?(:items, column)
@@ -69,6 +90,12 @@ module Kanbot
       UPDATE items
       SET creator_id = user_id::text
       WHERE creator_id IS NULL AND user_id IS NOT NULL
+    SQL
+
+    connection.exec_update(<<~SQL)
+      UPDATE items
+      SET position = id
+      WHERE position IS NULL
     SQL
   end
 

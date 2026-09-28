@@ -133,6 +133,7 @@ DEPENDENCIES
   activerecord
   discordrb
   dotenv
+  minitest
   pg
   puma
   rackup (~> 2.3)

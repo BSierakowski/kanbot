@@ -13,3 +13,7 @@ gem 'sinatra'
 gem 'puma'
 gem 'rackup', '~> 2.3'
 gem 'slack-ruby-client', '~> 3.1'
+
+group :test do
+  gem 'minitest'
+end

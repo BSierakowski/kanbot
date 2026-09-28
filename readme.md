@@ -26,6 +26,15 @@ Slack slash command:
 - /kanbot remove [status] [position]
 - /kanbot move [current_status] [position] [new_status]
 
+## Kanban Board
+
+Every channel gets its own kanban board on the web. When `KANBOT_WEB_URL` is set, the bottom of `!list` links to the
+channel's board, where anyone with the link can add cards, drag them between columns or reorder them, and delete them.
+Changes on the board show up the next time someone runs `!list`, and card numbers on the board match the positions
+used by `!move` and `!remove`. The board also picks up changes made from Discord while it's open.
+
+The link contains a random token for the channel, so treat it like a password: anyone who has it can edit the board.
+
 ## Development
 
 Running the bot locally should be a function of: 
@@ -36,11 +45,22 @@ Running the bot locally should be a function of:
 
 I say should because my workflow has been to deploy to heroku and test there.
 
-The web process serves the marketing page and Slack slash command endpoint:
+The web process serves the marketing page, the kanban boards, and the Slack slash command endpoint:
 
 ```sh
 bundle exec ruby ./webapp/kanbot_web.rb -p 4567
 ```
+
+Set `KANBOT_WEB_URL=http://localhost:4567` in `.env` so `!list` links to your local boards.
+
+The tests run against a separate Postgres database:
+
+```sh
+createdb kanbot_test
+bundle exec ruby bin/test
+```
+
+Set `TEST_DATABASE_URL` to use a different test database.
 
 ## Slack Setup
 
@@ -69,6 +89,7 @@ To get this in running you need to:
 2) Add the heroku remote to your git repo
 3) Add the heroku postgres addon
 4) Add the `DISCORD_BOT_TOKEN` env var.
+5) Add the `KANBOT_WEB_URL` env var with the app's public URL so `!list` can link to each channel's board.
 
 ### Railway
 
@@ -83,6 +104,8 @@ Set these variables on the app services:
 - `DATABASE_URL`: Railway's Postgres connection string
 - `DISCORD_BOT_TOKEN`: Discord bot token
 - `SLACK_SIGNING_SECRET`: Slack app signing secret
+- `KANBOT_WEB_URL`: the web service's public URL, like `https://YOUR_RAILWAY_WEB_HOST`. The worker uses it to put
+  board links at the bottom of `!list`.
 
 Railway can usually inject the Postgres connection string from the database service into the app services. The `railway.json` file runs `bundle exec ruby bin/migrate` before each deploy so the database schema is ready before the app starts.
 

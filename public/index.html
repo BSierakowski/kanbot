@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanbot – a shared kanban board for your Discord channels</title>
+    <meta name="description" content="Kanbot keeps a shared todo, doing, and done board for every Discord channel. Add and move items with the /kanbot slash command, or drag cards around on the web board.">
+    <link rel="icon" href="/kanbot-logo.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module" src="https://widgets.changebot.ai/v0.4.1/widgets.esm.js"></script>
   </head>
@@ -45,7 +48,7 @@
             </a>
           </div>
           <h1 class="mt-10 text-4xl font-bold tracking-tight text-white sm:text-6xl">Kanbot can!</h1>
-          <p class="mt-6 text-lg leading-8 text-gray-300">Kanbot helps you keep track of all your important gaming projects with a channel based collaborative todo list.</p>
+          <p class="mt-6 text-lg leading-8 text-gray-300">Kanbot keeps a shared kanban board for every Discord channel, so your group always knows what's todo, doing, and done. Just type <code class="rounded bg-white/10 px-1.5 py-0.5 text-base text-indigo-300">/kanbot</code> to add, move, and check off items.</p>
           <div class="mt-10 flex items-center gap-x-6">
             <a href="https://discord.com/oauth2/authorize?client_id=1182786391638298674&scope=applications.commands" class="rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400">Install Kanbot on your Discord Server</a>
             <div class="inline-flex items-center gap-x-2">
@@ -59,11 +62,70 @@
         </div>
         <div class="mx-auto mt-16 flex max-w-2xl sm:mt-24 lg:ml-10 lg:mr-0 lg:mt-0 lg:max-w-none lg:flex-none xl:ml-32">
           <div class="max-w-3xl flex-none sm:max-w-5xl lg:max-w-none">
-            <img src="hero_image.png" alt="App screenshot" width="1073" height="797" class="w-[76rem] rounded-md bg-white/5 shadow-2xl ring-1 ring-white/10">
+            <img src="hero_image.png" alt="A Discord channel where Kanbot's /kanbot slash commands add items, move one to doing, and list the board as todo, doing, and done" width="1100" height="800" class="w-[76rem] rounded-md bg-white/5 shadow-2xl ring-1 ring-white/10">
           </div>
         </div>
       </div>
     </div>
+
+    <section class="bg-gray-900 py-24 sm:py-32">
+      <div class="mx-auto max-w-7xl px-6 lg:px-8">
+        <div class="mx-auto max-w-2xl lg:mx-0">
+          <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">How it works</h2>
+          <p class="mt-4 text-lg leading-8 text-gray-300">Every channel gets its own board. There's nothing to set up once Kanbot is installed, so just start typing.</p>
+        </div>
+
+        <ol class="mx-auto mt-12 grid max-w-2xl grid-cols-1 gap-8 lg:mx-0 lg:max-w-none lg:grid-cols-3">
+          <li class="rounded-xl bg-white/5 p-6 ring-1 ring-inset ring-white/10">
+            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500 text-sm font-semibold text-white">1</span>
+            <h3 class="mt-4 text-lg font-semibold text-white">Install Kanbot</h3>
+            <p class="mt-2 text-gray-300">Add Kanbot to your Discord server. It only adds the <code class="text-indigo-300">/kanbot</code> command, and it doesn't read your messages.</p>
+          </li>
+          <li class="rounded-xl bg-white/5 p-6 ring-1 ring-inset ring-white/10">
+            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500 text-sm font-semibold text-white">2</span>
+            <h3 class="mt-4 text-lg font-semibold text-white">Run <code class="text-indigo-300">/kanbot</code> in any channel</h3>
+            <p class="mt-2 text-gray-300">Type <code class="text-indigo-300">/kanbot</code> and pick a command. Discord shows you each option as you go, and everyone in the channel sees the same board.</p>
+          </li>
+          <li class="rounded-xl bg-white/5 p-6 ring-1 ring-inset ring-white/10">
+            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500 text-sm font-semibold text-white">3</span>
+            <h3 class="mt-4 text-lg font-semibold text-white">Open the web board</h3>
+            <p class="mt-2 text-gray-300"><code class="text-indigo-300">/kanbot list</code> ends with a link to a kanban board for the channel, where you can add cards and drag them between todo, doing, and done.</p>
+          </li>
+        </ol>
+
+        <h3 class="mt-20 text-2xl font-bold tracking-tight text-white">Commands</h3>
+        <dl class="mt-8 divide-y divide-white/10 rounded-xl bg-white/5 ring-1 ring-inset ring-white/10">
+          <div class="gap-x-8 px-6 py-4 sm:grid sm:grid-cols-3">
+            <dt><code class="text-indigo-300">/kanbot list</code></dt>
+            <dd class="mt-1 text-gray-300 sm:col-span-2 sm:mt-0">Show the board, or pick a status to see just that column.</dd>
+          </div>
+          <div class="gap-x-8 px-6 py-4 sm:grid sm:grid-cols-3">
+            <dt><code class="text-indigo-300">/kanbot add</code></dt>
+            <dd class="mt-1 text-gray-300 sm:col-span-2 sm:mt-0">Add an item. It goes in todo unless you pick another status.</dd>
+          </div>
+          <div class="gap-x-8 px-6 py-4 sm:grid sm:grid-cols-3">
+            <dt><code class="text-indigo-300">/kanbot bulkadd</code></dt>
+            <dd class="mt-1 text-gray-300 sm:col-span-2 sm:mt-0">Add several items to todo at once, separated by commas.</dd>
+          </div>
+          <div class="gap-x-8 px-6 py-4 sm:grid sm:grid-cols-3">
+            <dt><code class="text-indigo-300">/kanbot move</code></dt>
+            <dd class="mt-1 text-gray-300 sm:col-span-2 sm:mt-0">Move an item to another status, using its number from the list.</dd>
+          </div>
+          <div class="gap-x-8 px-6 py-4 sm:grid sm:grid-cols-3">
+            <dt><code class="text-indigo-300">/kanbot remove</code></dt>
+            <dd class="mt-1 text-gray-300 sm:col-span-2 sm:mt-0">Remove an item, using its number from the list.</dd>
+          </div>
+          <div class="gap-x-8 px-6 py-4 sm:grid sm:grid-cols-3">
+            <dt><code class="text-indigo-300">/kanbot help</code></dt>
+            <dd class="mt-1 text-gray-300 sm:col-span-2 sm:mt-0">Show a quick reminder of the commands.</dd>
+          </div>
+        </dl>
+
+        <div class="mt-16 flex items-center gap-x-6">
+          <a href="https://discord.com/oauth2/authorize?client_id=1182786391638298674&scope=applications.commands" class="rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400">Install Kanbot on your Discord Server</a>
+        </div>
+      </div>
+    </section>
 
     <changebot-panel trigger=".open-updates" theme="nord" mode="drawer-right"></changebot-panel>
   </body>

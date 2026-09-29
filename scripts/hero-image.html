@@ -1,0 +1,155 @@
+<!doctype html>
+<!--
+  Source for public/hero_image.png, the screenshot on the marketing page.
+  It recreates Discord's dark theme with the text Kanbot actually posts (see lib/board.ts and lib/discord.ts).
+  Regenerate it with:
+
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --hide-scrollbars \
+      --force-device-scale-factor=2 --window-size=1100,800 \
+      --screenshot=public/hero_image.png scripts/hero-image.html
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Kanbot hero image</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { width: 1100px; height: 800px; overflow: hidden; }
+      body {
+        display: flex;
+        background: #313338;
+        color: #dbdee1;
+        font: 16px/1.375 "gg sans", "Noto Sans", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      }
+
+      .rail { width: 72px; background: #1e1f22; padding: 12px 0; display: flex; flex-direction: column; align-items: center; gap: 8px; flex: none; }
+      .rail .server { width: 48px; height: 48px; border-radius: 16px; background: #5865f2; color: #fff; font-weight: 600; font-size: 15px; display: grid; place-items: center; position: relative; }
+      .rail .server::before { content: ""; position: absolute; left: -12px; width: 8px; height: 40px; background: #fff; border-radius: 0 4px 4px 0; }
+      .rail .home { background: #313338; border-radius: 50%; }
+      .rail .home::before { display: none; }
+      .rail .home svg { width: 28px; height: 28px; }
+      .rail .divider { width: 32px; height: 2px; background: #35363c; border-radius: 1px; }
+      .rail .other { background: #313338; color: #dbdee1; }
+      .rail .other::before { display: none; }
+
+      .channels { width: 240px; background: #2b2d31; flex: none; display: flex; flex-direction: column; }
+      .channels .server-name { height: 48px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; font-weight: 600; border-bottom: 1px solid #1f2023; box-shadow: 0 1px 0 rgba(4, 4, 5, 0.1); }
+      .channels .category { padding: 18px 8px 4px 16px; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: #949ba4; }
+      .channels .channel { margin: 1px 8px; padding: 6px 8px; border-radius: 4px; color: #949ba4; font-weight: 500; display: flex; gap: 6px; align-items: center; }
+      .channels .channel .hash { font-size: 20px; line-height: 1; color: #80848e; }
+      .channels .channel.active { background: #404249; color: #fff; }
+      .channels .channel.active .hash { color: #dbdee1; }
+      .channels .user { margin-top: auto; height: 52px; background: #232428; display: flex; align-items: center; gap: 8px; padding: 0 8px; }
+      .channels .user .name { font-size: 14px; font-weight: 600; color: #f2f3f5; line-height: 1.1; }
+      .channels .user .status { font-size: 12px; color: #b5bac1; }
+
+      .avatar { width: 40px; height: 40px; border-radius: 50%; flex: none; display: grid; place-items: center; font-weight: 600; color: #fff; }
+      .avatar.small { width: 32px; height: 32px; font-size: 14px; }
+      .avatar.you { background: #e0783c; }
+      .avatar.bot { background: #eef0ff; }
+      .avatar.bot svg { width: 24px; height: 20px; }
+
+      .chat { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+      .chat header { height: 48px; padding: 0 16px; display: flex; align-items: center; gap: 8px; font-weight: 600; color: #f2f3f5; border-bottom: 1px solid #26272b; flex: none; }
+      .chat header .hash { font-size: 24px; color: #80848e; font-weight: 400; }
+      .messages { flex: 1; padding-top: 18px; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+
+      .message { position: relative; padding: 2px 48px 2px 72px; margin-top: 17px; }
+      .message .avatar { position: absolute; left: 16px; top: 4px; }
+      .message .used { position: relative; display: flex; align-items: center; gap: 4px; font-size: 14px; color: #b5bac1; margin-bottom: 2px; height: 20px; }
+      .message .used::before { content: ""; position: absolute; left: -56px; top: 9px; width: 34px; height: 10px; border-left: 2px solid #4e5058; border-top: 2px solid #4e5058; border-top-left-radius: 6px; }
+      .message .used .avatar { position: static; width: 16px; height: 16px; font-size: 9px; }
+      .message .used .who { font-weight: 500; color: #dbdee1; }
+      .message .used .cmd { color: #00a8fc; font-weight: 500; }
+      .message .meta { display: flex; align-items: baseline; gap: 6px; line-height: 22px; }
+      .message .meta .author { font-weight: 500; color: #f2f3f5; }
+      .message .meta .badge { font-size: 10px; font-weight: 500; line-height: 15px; padding: 0 5px; border-radius: 3px; background: #5865f2; color: #fff; align-self: center; text-transform: uppercase; }
+      .message .meta .time { font-size: 12px; color: #949ba4; }
+      .message p { line-height: 22px; }
+      .message h2 { font-size: 24px; line-height: 30px; font-weight: 700; color: #f2f3f5; margin-top: 4px; }
+      .message h3 { font-size: 20px; line-height: 26px; font-weight: 700; color: #f2f3f5; margin-top: 8px; }
+      .message ol { margin: 4px 0 4px 32px; }
+      .message ol li { padding-left: 2px; line-height: 22px; }
+      .message .sub { font-size: 12px; line-height: 16px; color: #949ba4; margin-top: 4px; }
+      .message .mention { background: rgba(88, 101, 242, 0.3); color: #c9cdfb; border-radius: 3px; padding: 0 2px; font-weight: 500; }
+      .message code { font: 85% Menlo, Consolas, monospace; background: #1e1f22; border-radius: 3px; padding: 1px 4px; }
+      .message a { color: #00a8fc; text-decoration: none; }
+
+      .composer { margin: 0 16px 24px; margin-top: 18px; min-height: 44px; border-radius: 8px; background: #383a40; display: flex; align-items: center; gap: 10px; padding: 0 16px; flex: none; }
+      .composer .plus { width: 24px; height: 24px; border-radius: 50%; background: #b5bac1; color: #383a40; font-size: 20px; font-weight: 700; line-height: 24px; text-align: center; flex: none; }
+      .composer .chip { display: inline-flex; align-items: center; height: 26px; border-radius: 4px; padding: 0 8px; font-size: 15px; font-weight: 500; white-space: nowrap; }
+      .composer .command { background: #4a4d8a; color: #dfe2ff; }
+      .composer .field { background: #2b2d31; color: #b5bac1; padding: 0; overflow: hidden; }
+      .composer .field .label { background: #202124; height: 100%; display: inline-flex; align-items: center; padding: 0 8px; color: #dbdee1; }
+      .composer .field .value { padding: 0 10px; color: #f2f3f5; }
+    </style>
+  </head>
+  <body>
+    <nav class="rail">
+      <div class="server home">
+        <svg viewBox="0 0 640 512"><path fill="#dbdee1" d="M320 0c17.7 0 32 14.3 32 32V96H472c39.8 0 72 32.2 72 72V440c0 39.8-32.2 72-72 72H168c-39.8 0-72-32.2-72-72V168c0-39.8 32.2-72 72-72H288V32c0-17.7 14.3-32 32-32zM264 256a40 40 0 1 0 -80 0 40 40 0 1 0 80 0zm152 40a40 40 0 1 0 0-80 40 40 0 1 0 0 80zM48 224H64V416H48c-26.5 0-48-21.5-48-48V272c0-26.5 21.5-48 48-48zm544 0c26.5 0 48 21.5 48 48v96c0 26.5-21.5 48-48 48H576V224h16z"/></svg>
+      </div>
+      <div class="divider"></div>
+      <div class="server">DT</div>
+      <div class="server other">GC</div>
+    </nav>
+
+    <aside class="channels">
+      <div class="server-name"><span>Dev Testing</span><span style="color:#b5bac1">⌄</span></div>
+      <div class="category">Text Channels</div>
+      <div class="channel"><span class="hash">#</span>general</div>
+      <div class="channel active"><span class="hash">#</span>valheim</div>
+      <div class="channel"><span class="hash">#</span>minecraft</div>
+      <div class="user">
+        <div class="avatar small you">B</div>
+        <div><div class="name">Brian</div><div class="status">Online</div></div>
+      </div>
+    </aside>
+
+    <main class="chat">
+      <header><span class="hash">#</span>valheim</header>
+
+      <div class="messages">
+        <div class="message">
+          <div class="used"><div class="avatar you">B</div><span class="who">Brian Sierakowski</span> used <span class="cmd">/kanbot bulkadd</span></div>
+          <div class="avatar bot"><svg viewBox="0 0 640 512"><path fill="#6366F1" d="M320 0c17.7 0 32 14.3 32 32V96H472c39.8 0 72 32.2 72 72V440c0 39.8-32.2 72-72 72H168c-39.8 0-72-32.2-72-72V168c0-39.8 32.2-72 72-72H288V32c0-17.7 14.3-32 32-32zM208 384c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H208zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H304zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H400zM264 256a40 40 0 1 0 -80 0 40 40 0 1 0 80 0zm152 40a40 40 0 1 0 0-80 40 40 0 1 0 0 80zM48 224H64V416H48c-26.5 0-48-21.5-48-48V272c0-26.5 21.5-48 48-48zm544 0c26.5 0 48 21.5 48 48v96c0 26.5-21.5 48-48 48H576V224h16z"/></svg></div>
+          <div class="meta"><span class="author">Kanbot</span><span class="badge">App</span><span class="time">Today at 1:20 PM</span></div>
+          <p>Added 3 items to Todo.</p>
+        </div>
+
+        <div class="message">
+          <div class="used"><div class="avatar you">B</div><span class="who">Brian Sierakowski</span> used <span class="cmd">/kanbot move</span></div>
+          <div class="avatar bot"><svg viewBox="0 0 640 512"><path fill="#6366F1" d="M320 0c17.7 0 32 14.3 32 32V96H472c39.8 0 72 32.2 72 72V440c0 39.8-32.2 72-72 72H168c-39.8 0-72-32.2-72-72V168c0-39.8 32.2-72 72-72H288V32c0-17.7 14.3-32 32-32zM208 384c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H208zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H304zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H400zM264 256a40 40 0 1 0 -80 0 40 40 0 1 0 80 0zm152 40a40 40 0 1 0 0-80 40 40 0 1 0 0 80zM48 224H64V416H48c-26.5 0-48-21.5-48-48V272c0-26.5 21.5-48 48-48zm544 0c26.5 0 48 21.5 48 48v96c0 26.5-21.5 48-48 48H576V224h16z"/></svg></div>
+          <div class="meta"><span class="author">Kanbot</span><span class="badge">App</span><span class="time">Today at 1:21 PM</span></div>
+          <p>Item 'mine more copper' moved from todo to doing.</p>
+        </div>
+
+        <div class="message">
+          <div class="used"><div class="avatar you">B</div><span class="who">Brian Sierakowski</span> used <span class="cmd">/kanbot list</span></div>
+          <div class="avatar bot"><svg viewBox="0 0 640 512"><path fill="#6366F1" d="M320 0c17.7 0 32 14.3 32 32V96H472c39.8 0 72 32.2 72 72V440c0 39.8-32.2 72-72 72H168c-39.8 0-72-32.2-72-72V168c0-39.8 32.2-72 72-72H288V32c0-17.7 14.3-32 32-32zM208 384c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H208zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H304zm96 0c-8.8 0-16 7.2-16 16s7.2 16 16 16h32c8.8 0 16-7.2 16-16s-7.2-16-16-16H400zM264 256a40 40 0 1 0 -80 0 40 40 0 1 0 80 0zm152 40a40 40 0 1 0 0-80 40 40 0 1 0 0 80zM48 224H64V416H48c-26.5 0-48-21.5-48-48V272c0-26.5 21.5-48 48-48zm544 0c26.5 0 48 21.5 48 48v96c0 26.5-21.5 48-48 48H576V224h16z"/></svg></div>
+          <div class="meta"><span class="author">Kanbot</span><span class="badge">App</span><span class="time">Today at 1:21 PM</span></div>
+          <h2>Kanbot board for #valheim</h2>
+          <h3>📋 Todo · 2</h3>
+          <ol>
+            <li>upgrade my axe</li>
+            <li>find the next boss</li>
+          </ol>
+          <h3>🔨 Doing · 1</h3>
+          <ol>
+            <li>mine more copper</li>
+          </ol>
+          <h3>✅ Done · 0</h3>
+          <div class="sub">Nothing finished yet</div>
+          <div class="sub" style="margin-top:12px">Added by <span class="mention">@Brian Sierakowski</span> · Use the numbers with <span class="cmd" style="color:#00a8fc">/kanbot move</span> or <span class="cmd" style="color:#00a8fc">/kanbot remove</span></div>
+          <div class="sub"><a href="#">Open the board</a> to add cards and drag them around</div>
+        </div>
+      </div>
+
+      <div class="composer">
+        <div class="plus">+</div>
+        <span class="chip command">/kanbot add</span>
+        <span class="chip field"><span class="label">item</span><span class="value">write the docs</span></span>
+      </div>
+    </main>
+  </body>
+</html>

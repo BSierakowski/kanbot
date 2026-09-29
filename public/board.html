@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <meta name="referrer" content="same-origin">
+    <title>Kanbot board</title>
+    <link rel="icon" href="/kanbot-logo.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/board.css">
+  </head>
+
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/">
+        <img src="/kanbot-logo.svg" alt="">
+        <span>Kanbot</span>
+      </a>
+
+      <div class="board-title">
+        <h1 id="board-name"></h1>
+        <span class="platform">Discord</span>
+      </div>
+
+      <label class="author">
+        <span>Adding cards as</span>
+        <input id="author" type="text" maxlength="80" placeholder="Your name" autocomplete="nickname">
+      </label>
+    </header>
+
+    <main id="board" class="board"></main>
+
+    <p class="hint">
+      Drag cards between columns to move them. Changes show up the next time someone runs <code>/kanbot list</code>.
+    </p>
+
+    <section id="not-found" class="not-found" hidden>
+      <img src="/kanbot-logo.svg" alt="">
+      <h1>This board link doesn't work</h1>
+      <p>Run <code>/kanbot list</code> in your Discord channel to get the current link.</p>
+      <a href="/">Back to Kanbot</a>
+    </section>
+
+    <noscript><p class="hint">Turn on JavaScript to use the board.</p></noscript>
+    <div class="toast" role="status" aria-live="polite" hidden></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/Sortable.min.js" defer></script>
+    <script src="/board.js" defer></script>
+  </body>
+</html>

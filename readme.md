@@ -96,6 +96,14 @@ https://YOUR_VERCEL_DOMAIN/api/slack
 
 Add the Slack app's signing secret as `SLACK_SIGNING_SECRET`. Slack requests are verified with that secret before any command runs.
 
+## Changelog
+
+The "What's new" panel on the marketing page shows Kanbot's updates from [Changebot](https://www.changebot.ai).
+
+`.cursor/mcp.json` connects Cursor to Changebot's MCP server, so the agent can draft and publish those updates. The first time it connects, Cursor asks you to sign in to Changebot: use the login prompt on the Changebot server in Cursor's MCP settings, or run `agent mcp login changebot` with the Cursor CLI.
+
+To publish from Cursor Cloud Agents, also add `https://app.changebot.ai/mcp` from the MCP menu at https://cursor.com/agents (or under Dashboard > Plugins & MCPs to share it with the team) and sign in there.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/BSierakowski/kanbot. I'd be thrilled to add

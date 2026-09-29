@@ -140,7 +140,7 @@ export async function editOriginalResponse(interaction: Interaction, data: Messa
   }
 }
 
-export async function runDiscordCommand(interaction: Interaction): Promise<string> {
+export async function runDiscordCommand(interaction: Interaction, siteUrl: string): Promise<string> {
   const user = interaction.member?.user ?? interaction.user;
   const room: Room = {
     platform: 'discord',
@@ -156,8 +156,10 @@ export async function runDiscordCommand(interaction: Interaction): Promise<strin
   const text = (name: string) => options.get(name)?.toString();
 
   switch (subcommand?.name) {
-    case 'list':
-      return board.list(room, text('status'), (listed) => formatBoard(listed, interaction.data?.id));
+    case 'list': {
+      const boardUrl = `${siteUrl}/boards/${await board.boardToken(room)}`;
+      return board.list(room, text('status'), (listed) => formatBoard(listed, interaction.data?.id, boardUrl));
+    }
     case 'add':
       return board.add(room, text('status'), [text('item') ?? '']);
     case 'bulkadd':
@@ -171,11 +173,13 @@ export async function runDiscordCommand(interaction: Interaction): Promise<strin
   }
 }
 
-export function formatBoard({ roomId, roomName, sections }: Board, commandId?: string): string {
+export function formatBoard({ roomId, roomName, sections }: Board, commandId?: string, boardUrl?: string): string {
   const command = (name: string) => (commandId ? `</kanbot ${name}:${commandId}>` : `\`/kanbot ${name}\``);
   const fullBoard = sections.length > 1;
   const items = sections.flatMap((section) => section.items);
-  const soleAuthor = new Set(items.map((item) => item.creatorId)).size === 1 ? author(items[0]) : undefined;
+  // Cards added on the web board have a name but no Discord user.
+  const authors = new Set(items.map((item) => item.creatorId ?? item.creatorName));
+  const soleAuthor = authors.size === 1 ? author(items[0]) : undefined;
   const shown = sections.map((section) => ({
     section,
     start: fullBoard && section.status === 'done' ? Math.max(0, section.items.length - board.DONE_SHOWN_ON_FULL_BOARD) : 0,
@@ -209,6 +213,7 @@ export function formatBoard({ roomId, roomName, sections }: Board, commandId?: s
       items.length === 0 ? `Add one with ${command('add')}` : `Use the numbers with ${command('move')} or ${command('remove')}`;
     if (lines.at(-1) !== '') lines.push('');
     lines.push(`-# ${soleAuthor ? `Added by ${soleAuthor} · ` : ''}${hint}`);
+    if (boardUrl) lines.push(`-# [Open the board](${boardUrl}) to add cards and drag them around`);
     return lines.join('\n');
   };
 

@@ -1,3 +1,5 @@
+import { randomBytes } from 'node:crypto';
+
 import { pool } from './db.js';
 
 export const STATUSES = ['todo', 'doing', 'done'] as const;
@@ -26,7 +28,7 @@ const INVALID_POSITION = 'Please provide a position greater than 0.';
 const NTH_ITEM_IN_STATUS = `
   SELECT id FROM items
   WHERE platform = $1 AND workspace_id = $2 AND room_id = $3 AND status = $4
-  ORDER BY id
+  ORDER BY position, id
   OFFSET $5 LIMIT 1
 `;
 
@@ -38,6 +40,8 @@ export interface Room {
   userId: string;
   userName: string;
 }
+
+export type BoardRoom = Omit<Room, 'userId' | 'userName'>;
 
 export interface BoardItem {
   position: number;
@@ -52,7 +56,14 @@ export interface Board {
   sections: { status: Status; items: BoardItem[] }[];
 }
 
+export interface Card {
+  id: number;
+  description: string;
+  author: string | null;
+}
+
 interface Item {
+  id: number;
   item_description: string;
   status: number;
   creator_id: string | null;
@@ -155,7 +166,14 @@ export async function move(
   if (itemPosition <= 0) return INVALID_POSITION;
 
   const { rows } = await pool.query<Pick<Item, 'item_description'>>(
-    `UPDATE items SET status = $6 WHERE id = (${NTH_ITEM_IN_STATUS}) RETURNING item_description`,
+    `UPDATE items
+     SET status = $6,
+         position = (
+           SELECT COALESCE(MAX(position), 0) + 1 FROM items
+           WHERE platform = $1 AND workspace_id = $2 AND room_id = $3 AND status = $6
+         )
+     WHERE id = (${NTH_ITEM_IN_STATUS})
+     RETURNING item_description`,
     [...roomKey(room), STATUSES.indexOf(from), itemPosition - 1, STATUSES.indexOf(to)],
   );
   const item = rows[0];
@@ -164,7 +182,83 @@ export async function move(
   return `Item '${item.item_description}' moved from ${from} to ${to}.`;
 }
 
-function isStatus(value: string): value is Status {
+export async function findBoard(token: string): Promise<BoardRoom | undefined> {
+  const { rows } = await pool.query<{
+    platform: Room['platform'];
+    workspace_id: string;
+    room_id: string;
+    room_name: string | null;
+  }>('SELECT platform, workspace_id, room_id, room_name FROM boards WHERE token = $1', [token]);
+  const row = rows[0];
+  if (!row) return undefined;
+
+  return { platform: row.platform, workspaceId: row.workspace_id, roomId: row.room_id, roomName: row.room_name };
+}
+
+export async function cards(room: BoardRoom): Promise<{ status: Status; title: string; cards: Card[] }[]> {
+  const items = await roomItems(room);
+
+  return STATUSES.map((status) => ({
+    status,
+    title: SECTIONS[status].title,
+    cards: items
+      .filter((item) => item.status === STATUSES.indexOf(status))
+      .map((item) => ({ id: item.id, description: item.item_description, author: item.creator_name })),
+  }));
+}
+
+export async function addCard(room: BoardRoom, status: Status, description: string, author: string | null): Promise<void> {
+  await insertItem({ ...room, userId: null, userName: author }, description, status);
+}
+
+// Puts the card in the status column just above the card with beforeId, or at the bottom when that card isn't there.
+export async function moveCard(room: BoardRoom, id: number, status: Status, beforeId: number | null): Promise<boolean> {
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+    await client.query('SELECT 1 FROM boards WHERE platform = $1 AND workspace_id = $2 AND room_id = $3 FOR UPDATE', roomKey(room));
+
+    const { rows } = await client.query<Pick<Item, 'id'>>(
+      `SELECT id FROM items
+       WHERE platform = $1 AND workspace_id = $2 AND room_id = $3 AND (status = $4 OR id = $5)
+       ORDER BY position, id`,
+      [...roomKey(room), STATUSES.indexOf(status), id],
+    );
+    if (!rows.some((row) => row.id === id)) {
+      await client.query('ROLLBACK');
+      return false;
+    }
+
+    const column = rows.map((row) => row.id).filter((columnId) => columnId !== id);
+    const before = beforeId === null ? -1 : column.indexOf(beforeId);
+    column.splice(before === -1 ? column.length : before, 0, id);
+
+    await client.query(
+      `UPDATE items SET status = $1, position = ordered.position
+       FROM unnest($2::int[]) WITH ORDINALITY AS ordered (id, position)
+       WHERE items.id = ordered.id`,
+      [STATUSES.indexOf(status), column],
+    );
+    await client.query('COMMIT');
+    return true;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function deleteCard(room: BoardRoom, id: number): Promise<boolean> {
+  const { rowCount } = await pool.query(
+    'DELETE FROM items WHERE platform = $1 AND workspace_id = $2 AND room_id = $3 AND id = $4',
+    [...roomKey(room), id],
+  );
+  return rowCount === 1;
+}
+
+export function isStatus(value: string): value is Status {
   return (STATUSES as readonly string[]).includes(value);
 }
 
@@ -173,30 +267,60 @@ function toPosition(value: string | number | undefined): number {
   return Number.isNaN(position) ? 0 : position;
 }
 
-function roomKey(room: Room): string[] {
+function roomKey(room: BoardRoom): string[] {
   return [room.platform, room.workspaceId, room.roomId];
 }
 
-async function roomItems(room: Room, status?: Status): Promise<Item[]> {
+async function roomItems(room: BoardRoom, status?: Status): Promise<Item[]> {
   const params: (string | number)[] = roomKey(room);
   let sql =
-    'SELECT item_description, status, creator_id, creator_name FROM items WHERE platform = $1 AND workspace_id = $2 AND room_id = $3';
+    'SELECT id, item_description, status, creator_id, creator_name FROM items WHERE platform = $1 AND workspace_id = $2 AND room_id = $3';
 
   if (status) {
     params.push(STATUSES.indexOf(status));
     sql += ' AND status = $4';
   }
 
-  const { rows } = await pool.query<Item>(`${sql} ORDER BY id`, params);
+  const { rows } = await pool.query<Item>(`${sql} ORDER BY position, id`, params);
   return rows;
 }
 
-async function insertItem(room: Room, itemDescription: string, status: Status): Promise<void> {
+async function insertItem(
+  room: BoardRoom & { userId: string | null; userName: string | null },
+  itemDescription: string,
+  status: Status,
+): Promise<void> {
   const discordIds = room.platform === 'discord' ? [room.userId, room.workspaceId, room.roomId] : [null, null, null];
+  const { rows } = await pool.query<{ position: number }>(
+    `SELECT COALESCE(MAX(position), 0) + 1 AS position FROM items
+     WHERE platform = $1 AND workspace_id = $2 AND room_id = $3 AND status = $4`,
+    [...roomKey(room), STATUSES.indexOf(status)],
+  );
 
   await pool.query(
-    `INSERT INTO items (platform, workspace_id, room_id, room_name, creator_id, creator_name, user_id, server_id, channel_id, item_description, status)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-    [...roomKey(room), room.roomName, room.userId, room.userName, ...discordIds, itemDescription, STATUSES.indexOf(status)],
+    `INSERT INTO items (platform, workspace_id, room_id, room_name, creator_id, creator_name, user_id, server_id, channel_id, item_description, status, position)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+    [
+      ...roomKey(room),
+      room.roomName,
+      room.userId,
+      room.userName,
+      ...discordIds,
+      itemDescription,
+      STATUSES.indexOf(status),
+      rows[0].position,
+    ],
   );
+}
+
+export async function boardToken(room: BoardRoom): Promise<string> {
+  const { rows } = await pool.query<{ token: string }>(
+    `INSERT INTO boards (platform, workspace_id, room_id, room_name, token)
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (platform, workspace_id, room_id)
+     DO UPDATE SET room_name = COALESCE(EXCLUDED.room_name, boards.room_name)
+     RETURNING token`,
+    [...roomKey(room), room.roomName, randomBytes(16).toString('base64url')],
+  );
+  return rows[0].token;
 }

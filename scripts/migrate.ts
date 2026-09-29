@@ -24,7 +24,8 @@ try {
       creator_name VARCHAR ( 255 ),
       room_name VARCHAR ( 255 ),
       item_description VARCHAR ( 2048 ) NOT NULL,
-      status int NOT NULL
+      status int NOT NULL,
+      position int
     )
   `);
   // Tables created before Slack support only have the Discord columns. Add the
@@ -49,6 +50,7 @@ try {
     WHERE platform IS NULL OR workspace_id IS NULL OR room_id IS NULL OR creator_id IS NULL
   `);
   // Items used to store their author as a " - username" suffix on the description.
+  // Cards added on the web board have no creator_id and may have no name, so they're left alone.
   await client.query('ALTER TABLE items ADD COLUMN IF NOT EXISTS creator_name VARCHAR ( 255 )');
   await client.query(`
     UPDATE items
@@ -56,9 +58,23 @@ try {
     FROM (
       SELECT id, regexp_match(item_description, '^(.+) - (\\S+)$') AS parts
       FROM items
-      WHERE creator_name IS NULL
+      WHERE creator_name IS NULL AND creator_id IS NOT NULL
     ) AS split
     WHERE items.id = split.id AND split.parts IS NOT NULL
+  `);
+  // Items were listed in the order they were added until cards could be reordered.
+  await client.query('ALTER TABLE items ADD COLUMN IF NOT EXISTS position int');
+  await client.query('UPDATE items SET position = id WHERE position IS NULL');
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS boards (
+      id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+      platform VARCHAR ( 32 ) NOT NULL,
+      workspace_id VARCHAR ( 255 ) NOT NULL,
+      room_id VARCHAR ( 255 ) NOT NULL,
+      room_name VARCHAR ( 255 ),
+      token VARCHAR ( 64 ) NOT NULL UNIQUE,
+      UNIQUE ( platform, workspace_id, room_id )
+    )
   `);
   await client.query('COMMIT');
   console.log('Database is ready.');

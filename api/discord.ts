@@ -29,7 +29,7 @@ export async function POST(request: Request): Promise<Response> {
   if (interaction.type === PING) return Response.json({ type: PONG });
   if (interaction.type !== APPLICATION_COMMAND) return new Response('Unsupported interaction', { status: 400 });
 
-  const reply = replyOrFailure(runDiscordCommand(interaction, new URL(request.url).origin)).then(message);
+  const reply = replyOrFailure(runDiscordCommand(interaction, process.env.SITE_URL || new URL(request.url).origin)).then(message);
   const data = await beforeDeadline(reply);
   if (data) return Response.json({ type: CHANNEL_MESSAGE_WITH_SOURCE, data });
 

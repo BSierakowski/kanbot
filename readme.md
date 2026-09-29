@@ -37,7 +37,7 @@ Links use the same domain Discord sends slash commands to, so there's nothing ex
 ## How it works
 
 Kanbot runs on Vercel:
-- `public/` is the marketing page.
+- `public/` is the marketing page. Its screenshot, `public/hero_image.png`, is rendered from `scripts/hero-image.html`, which has the Chrome command to regenerate it. Update it when the bot's replies change.
 - `api/discord.ts` receives Discord slash commands at `/api/discord`.
 - `api/slack.ts` receives the Slack slash command at `/api/slack`.
 - `public/board.html` is the kanban board, served at `/boards/<token>` by the rewrite in `vercel.json`, and `api/boards.ts` is the API it uses at `/api/boards`.
@@ -61,7 +61,7 @@ Lists are stored per channel, scoped by Discord server or Slack workspace.
 
 1) Import the GitHub repo into Vercel. No framework preset is needed. The first build fails until the database below is connected.
 2) In the Vercel project's Storage tab, add a Neon Postgres database. Pick the AWS US East (N. Virginia) region so it sits next to Vercel's default function region. This sets `DATABASE_URL` and `DATABASE_URL_UNPOOLED`.
-3) Add `DISCORD_PUBLIC_KEY` and `SLACK_SIGNING_SECRET` to the project's environment variables.
+3) Add `DISCORD_PUBLIC_KEY` and `SLACK_SIGNING_SECRET` to the project's environment variables. Optionally set `SITE_URL` (for example `https://kanbot.co`, no trailing slash) so board links use your custom domain instead of the domain Discord calls.
 4) Deploy. Every build runs `npm run migrate`, so the database schema is ready before the new version goes live.
 
 ### Moving an existing Kanbot database

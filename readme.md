@@ -24,12 +24,23 @@ Example:
 
 In Discord, the options show up as fields once you pick a subcommand, for example `/kanbot move current_status:doing position:1 new_status:done`.
 
+## Kanban Board
+
+Every Discord channel gets its own kanban board on the web. `/kanbot list` ends with a link to it, where anyone with
+the link can add cards, drag them between columns or reorder them, and delete them. Changes on the board show up the
+next time someone runs `/kanbot list`, and card numbers on the board match the positions `/kanbot move` and
+`/kanbot remove` use. An open board also picks up changes made in Discord within about 15 seconds.
+
+The link contains a random token for the channel, so treat it like a password: anyone who has it can edit the board.
+Links use the same domain Discord sends slash commands to, so there's nothing extra to set up.
+
 ## How it works
 
 Kanbot runs on Vercel:
 - `public/` is the marketing page.
 - `api/discord.ts` receives Discord slash commands at `/api/discord`.
 - `api/slack.ts` receives the Slack slash command at `/api/slack`.
+- `public/board.html` is the kanban board, served at `/boards/<token>` by the rewrite in `vercel.json`, and `api/boards.ts` is the API it uses at `/api/boards`.
 - `lib/board.ts` holds the board logic both platforms share, and `lib/discord.ts` and `lib/slack.ts` format the board for each platform. Items are stored in Postgres (Neon).
 
 Lists are stored per channel, scoped by Discord server or Slack workspace.
@@ -42,6 +53,9 @@ Lists are stored per channel, scoped by Discord server or Slack workspace.
 4) `npx vercel dev` to serve the page and functions locally
 
 `npm run typecheck` checks the TypeScript.
+
+`npm test` runs the tests against a separate Postgres database. Create it with `createdb kanbot_test`, or set
+`TEST_DATABASE_URL` to use a different one.
 
 ## Deployment
 

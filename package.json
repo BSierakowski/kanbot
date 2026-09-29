@@ -8,6 +8,7 @@
   "scripts": {
     "build": "npm run typecheck && npm run migrate",
     "typecheck": "tsc",
+    "test": "tsx --test --test-concurrency=1 test/*.test.ts",
     "migrate": "tsx --env-file-if-exists=.env scripts/migrate.ts",
     "discord:register": "tsx --env-file-if-exists=.env scripts/register-discord-commands.ts"
   },

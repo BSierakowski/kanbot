@@ -350,8 +350,8 @@ input[type="text"]:focus {
 
 .not-found {
   max-width: 480px;
-  margin: 18vh auto 0;
-  padding: 0 24px;
+  margin: 0 auto;
+  padding: 18vh 24px 0;
   text-align: center;
 }
 

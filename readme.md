@@ -2,139 +2,99 @@
 
 Kanbot can :).
 
+Kanbot keeps a shared todo list for each Discord or Slack channel, where every item has a kanban status: todo, doing, or done.
+
 ## Commands
 
-Discord commands:
-- !list [status]
-- !add [status] [item]
-- !bulkadd [item], [item]
-- !remove [status] [position]
-- !move [current_status] [position] [new_status]
-
-Example:
-- !list
-- !list todo
-- !add doing Build a Kanban Board
-- !bulkadd Write docs, Ship Slack support
-- !remove doing 1
-- !move doing 1 done
-
-Slack slash command:
+Discord and Slack share the same `/kanbot` slash command:
 - /kanbot list [status]
 - /kanbot add [status] [item]
 - /kanbot bulkadd [item], [item]
 - /kanbot remove [status] [position]
 - /kanbot move [current_status] [position] [new_status]
+- /kanbot help
 
-## Kanban Board
+Example:
+- /kanbot list
+- /kanbot list todo
+- /kanbot add doing Build a Kanban Board
+- /kanbot bulkadd Write docs, Ship Slack support
+- /kanbot remove doing 1
+- /kanbot move doing 1 done
 
-Every channel gets its own kanban board on the web. When `KANBOT_WEB_URL` is set, the bottom of `!list` links to the
-channel's board, where anyone with the link can add cards, drag them between columns or reorder them, and delete them.
-Changes on the board show up the next time someone runs `!list`, and card numbers on the board match the positions
-used by `!move` and `!remove`. The board also picks up changes made from Discord while it's open.
+In Discord, the options show up as fields once you pick a subcommand, for example `/kanbot move current_status:doing position:1 new_status:done`.
 
-The link contains a random token for the channel, so treat it like a password: anyone who has it can edit the board.
+## How it works
+
+Kanbot runs on Vercel:
+- `public/` is the marketing page.
+- `api/discord.ts` receives Discord slash commands at `/api/discord`.
+- `api/slack.ts` receives the Slack slash command at `/api/slack`.
+- `lib/board.ts` holds the board logic both platforms share, and `lib/discord.ts` and `lib/slack.ts` format the board for each platform. Items are stored in Postgres (Neon).
+
+Lists are stored per channel, scoped by Discord server or Slack workspace.
 
 ## Development
 
-Running the bot locally should be a function of: 
-1) bundling the required gems
-2) creating a database
-3) running `bundle exec ruby bin/migrate`
-4) and `bundle exec ruby kanbot.rb`
+1) `npm install`
+2) Copy `.env.example` to `.env` and point `DATABASE_URL` at a local Postgres database
+3) `npm run migrate`
+4) `npx vercel dev` to serve the page and functions locally
 
-I say should because my workflow has been to deploy to heroku and test there.
-
-The web process serves the marketing page, the kanban boards, and the Slack slash command endpoint:
-
-```sh
-bundle exec ruby ./webapp/kanbot_web.rb -p 4567
-```
-
-Set `KANBOT_WEB_URL=http://localhost:4567` in `.env` so `!list` links to your local boards.
-
-The tests run against a separate Postgres database:
-
-```sh
-createdb kanbot_test
-bundle exec ruby bin/test
-```
-
-Set `TEST_DATABASE_URL` to use a different test database.
-
-## Slack Setup
-
-Create a Slack app with a slash command named `/kanbot`.
-
-Set the slash command request URL to:
-
-```text
-https://YOUR_APP_HOST/slack/commands
-```
-
-Add the Slack app's signing secret as `SLACK_SIGNING_SECRET`. Slack requests are verified with that secret before any command runs.
-
-The Slack command stores lists per Slack channel, scoped by Slack workspace and channel ID.
+`npm run typecheck` checks the TypeScript.
 
 ## Deployment
 
-### Heroku
+1) Import the GitHub repo into Vercel. No framework preset is needed. The first build fails until the database below is connected.
+2) In the Vercel project's Storage tab, add a Neon Postgres database. Pick the AWS US East (N. Virginia) region so it sits next to Vercel's default function region. This sets `DATABASE_URL` and `DATABASE_URL_UNPOOLED`.
+3) Add `DISCORD_PUBLIC_KEY` and `SLACK_SIGNING_SECRET` to the project's environment variables.
+4) Deploy. Every build runs `npm run migrate`, so the database schema is ready before the new version goes live.
 
-The bot is running on Heroku. Because we need the bot to listen over a long period of time, our Procfile specifies one 
-worker as the bot, running `bundle exec ruby kanbot.rb`. 
+### Moving an existing Kanbot database
 
-To get this in running you need to:
+`npm run migrate` also upgrades tables from older versions of Kanbot, including the Discord-only table from before Slack support, so existing items stay on their channel's board.
 
-1) Create a heroku app
-2) Add the heroku remote to your git repo
-3) Add the heroku postgres addon
-4) Add the `DISCORD_BOT_TOKEN` env var.
-5) Add the `KANBOT_WEB_URL` env var with the app's public URL so `!list` can link to each channel's board.
+If the old app already used Neon, you can skip the copy below and set `DATABASE_URL` in Vercel to that database instead of adding a new one.
 
-### Railway
-
-Create a Railway project with:
-
-- A Postgres database service
-- A web service running this repo's `web` process
-- A worker service running this repo's `worker` process
-
-Set these variables on the app services:
-
-- `DATABASE_URL`: Railway's Postgres connection string
-- `DISCORD_BOT_TOKEN`: Discord bot token
-- `SLACK_SIGNING_SECRET`: Slack app signing secret
-- `KANBOT_WEB_URL`: the web service's public URL, like `https://YOUR_RAILWAY_WEB_HOST`. The worker uses it to put
-  board links at the bottom of `!list`.
-
-Railway can usually inject the Postgres connection string from the database service into the app services. The `railway.json` file runs `bundle exec ruby bin/migrate` before each deploy so the database schema is ready before the app starts.
-
-To initialize the database manually from Railway, run this command against either app service after `DATABASE_URL` is set:
+Otherwise, copy the items from the old Heroku or Railway database into the new one before pointing Discord and Slack at Vercel. Stop the old worker and web processes first so nothing writes to the old database during the copy. Set `OLD_DATABASE_URL` to the old database (on Railway, use the Postgres service's `DATABASE_PUBLIC_URL`) and `DATABASE_URL` to the new one (Neon's unpooled connection string), then run:
 
 ```sh
-bundle exec ruby bin/migrate
+npm run migrate
+pg_dump --data-only --table=items "$OLD_DATABASE_URL" | psql "$DATABASE_URL"
+npm run migrate
 ```
 
-Run the `worker` process for Discord and the `web` process for the landing page and Slack slash command endpoint. Point Slack's `/kanbot` request URL at:
+The first `npm run migrate` creates the table in the empty database, and the second fills in the channel columns for older Discord items.
+
+### Discord Setup
+
+Register the slash command, and run it again whenever the command definition in `lib/discord.ts` changes:
+
+```sh
+DISCORD_BOT_TOKEN=your-bot-token npm run discord:register
+```
+
+It also prints the app's public key, which is the value for `DISCORD_PUBLIC_KEY`.
+
+Then, in the Discord Developer Portal, set the Kanbot application's Interactions Endpoint URL to:
 
 ```text
-https://YOUR_RAILWAY_WEB_HOST/slack/commands
+https://YOUR_VERCEL_DOMAIN/api/discord
 ```
 
-### Railway + Neon
+Discord sends a test request when you save, so deploy with `DISCORD_PUBLIC_KEY` set first.
 
-If you prefer Neon, keep the same Railway app setup and set `DATABASE_URL` to the Neon Postgres connection string instead of Railway Postgres.
+Install link: https://discord.com/oauth2/authorize?client_id=1182786391638298674&scope=applications.commands
 
-For troubleshooting I recommend running `heroku logs --tail` to see what's going on, and having the bot send a message 
-when it boots. Here's what it looked like for me:
+### Slack Setup
 
-```ruby
-boot_channel_id = "1006282141828644944" # the channel you want the boot message to go to
+Create a Slack app with a slash command named `/kanbot` and set its request URL to:
 
-bot.send_message(boot_channel_id, "Kanbot Kan! Booted at #{Time.now}. \n \n Available commands: \n !list [status] \n !add [status] [item] \n !remove [status] [position] \n !move [current_status] [position] [new_status] \n \n Example: \n !list \n !list todo \n !add doing Build a Kanban Board \n !remove doing 1 \n !move doing 1 done")
+```text
+https://YOUR_VERCEL_DOMAIN/api/slack
 ```
 
-This was right below the `puts "starting Kanbot..."` line in `kanbot.rb` to make that startup process more visible.
+Add the Slack app's signing secret as `SLACK_SIGNING_SECRET`. Slack requests are verified with that secret before any command runs.
 
 ## Contributing
 
